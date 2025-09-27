@@ -2,9 +2,9 @@
 session_start();
 
 if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) && !empty($_POST['house']) && !empty($_POST['bedroom']) && !empty($_POST['bathroom']) && !empty($_POST['location'])) {
-    $formData = $_POST;
-    $jsonData = json_encode($formData);
-    header("Location: budget.php");
+    $jsonData = json_encode($_POST);
+    header("Location: home.php");
+    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -13,7 +13,7 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
     <meta charset="UTF-8">
     <title>Tell us more about yourself</title>
     <link rel="stylesheet" href="./css/style.css">
-
+    <script src="./js/initialQuestions.js" ></script>
 </head>
 <body>
     <?php include 'navigation.php'?>
@@ -51,5 +51,5 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
         <input type="button" value="Next" name="next">
     </form>
 </body>
-<script src="./js/initialQuestions.js" ></script>
+
 </html>

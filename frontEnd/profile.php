@@ -1,4 +1,10 @@
-<?php session_start();?>
+<?php session_start();
+// Name
+// age
+// default location
+// dark mode
+// personal information from database
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -11,6 +17,7 @@
 
 <body>
     <?php include 'navigation.php'?>
-    <p>LOCATION<p>
+    <p>PROFILE<p>
+
 </body>
 </html>

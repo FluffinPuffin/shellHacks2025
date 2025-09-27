@@ -1,4 +1,5 @@
 <?php session_start();
+<?php session_start();
 // last 3 budgets
 // Example data structure - you can populate this from database or other sources
 $destinations = [];
@@ -28,6 +29,8 @@ $destinations = [];
 </head>
 
 <body>
+    <?php include 'navigation.php'?>
+    <p>HOME PAGE <p>
     <h1>Home</h1>
     
     <section class="table-section">

@@ -1,13 +1,12 @@
 <?php
 session_start();
 
+// If everything inside is not empty and submit button is pressed then encode to json and go home
 if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) && !empty($_POST['house']) && !empty($_POST['bedroom']) && !empty($_POST['bathroom']) && !empty($_POST['location'])) {
-    $formData = $_POST;
-    $formData['username'] = $_SESSION['username'];
-    $jsonData = json_encode($formData);
-    header("Location: budget.php");
-} else {
-    echo "<script>alert('Please fill in all fields.');</script>";
+    // data from from
+    $jsonData = json_encode($_POST);
+    header("Location: home.php");
+    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -16,9 +15,10 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
     <meta charset="UTF-8">
     <title>Tell us more about yourself</title>
     <link rel="stylesheet" href="./css/style.css">
-
+    <script src="./js/initialQuestions.js" ></script>
 </head>
 <body>
+    <?php include 'navigation.php'?>
     <h1>Tell us more about yourself</h1>
     <form id="initialQuestions" action="initialQuestions.php" method="post">
         <!-- Step 1 -->
@@ -53,5 +53,5 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
         <input type="button" value="Next" name="next">
     </form>
 </body>
-<script src="./js/initialQuestions.js" ></script>
+
 </html>

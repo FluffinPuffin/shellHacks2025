@@ -1,4 +1,8 @@
-<? session_start()?>
+<? session_start()
+// regen button
+// save and exitcbutton
+// by month and year
+?>
 
 <!DOCTYPE html>
 <html lang="en">

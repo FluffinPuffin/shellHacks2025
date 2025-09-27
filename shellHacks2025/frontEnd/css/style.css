@@ -20,6 +20,44 @@
 /* Logout */
 
 /* Navgation */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 0;
+    /* remove gap from ul; we’ll use margin on li if needed */
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+    background-color: #d9dadb;
+    width: 100%;
+    height: 50px;
+}
+
+.nav-links li {
+    flex: 1;
+    /* Make each li take equal space */
+}
+
+.nav-links a {
+    display: flex;
+    /* Make the link a flex container */
+    align-items: center;
+    /* Vertically center text */
+    justify-content: center;
+    /* Horizontally center text */
+    height: 100%;
+    /* Fill the li height */
+    text-decoration: none;
+    color: black;
+    /* link color */
+    transition: background-color 0.3s;
+}
+
+.nav-links a:hover {
+    background-color: #b3b3b3;
+    /* Full box hover effect */
+    text-decoration: underline;
+}
 
 
 /* Profile */

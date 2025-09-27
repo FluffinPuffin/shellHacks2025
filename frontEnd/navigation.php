@@ -6,6 +6,7 @@
         if (isset($_SESSION['username'])) {
         ?>
             <li><a href="logout.php" style="color: purple; text-decoration: none;">Logout</a></li>
+            <li><a href="profile.php" style="color: purple; text-decoration: none;">Profile</a></li>
         <?php } else { ?>
             <li><a href="login.php" style="color: purple; text-decoration: none;">Login</a></li>
         <?php }?>

@@ -1,12 +1,15 @@
 <?php
     session_start();
+    // if already logged in go home
     if (isset($_SESSION['username'])) {
         header("Location: home.php");
         exit();
     }
+    // when form submitted and not empty
     if (isset($_POST['Submit']) && !empty($_POST['username']) && !empty($_POST['password'])) {
         // Check Database for account then send to home page else pop error
         $_SESSION['username'] = $_POST['username'];
+        // this is the json string (for login idk)
         $jsonData = json_encode($_POST);
         header("Location: home.php");
     }

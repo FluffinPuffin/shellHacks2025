@@ -1,7 +1,9 @@
 <?php
 session_start();
 
+// If everything inside is not empty and submit button is pressed then encode to json and go home
 if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) && !empty($_POST['house']) && !empty($_POST['bedroom']) && !empty($_POST['bathroom']) && !empty($_POST['location'])) {
+    // data from from
     $jsonData = json_encode($_POST);
     header("Location: home.php");
     exit();

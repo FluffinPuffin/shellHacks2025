@@ -1,6 +1,8 @@
+<?php // Navigation bar at top ?>
 <nav>
     <ul style="list-style: none; display: flex; gap: 2em; margin: 0; padding: 0; justify-content: center;">
         <?php
+        // If logged in show logout else show login
         if (isset($_SESSION['username'])) {
         ?>
             <li><a href="logout.php" style="color: purple; text-decoration: none;">Logout</a></li>

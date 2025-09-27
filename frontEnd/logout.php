@@ -1,8 +1,11 @@
 <?php
+// Start session
 session_start();
+// Not logged in, then go home
 if (!isset($_SESSION['username'])){
     header("Location: home.php");
 }
+// If logged in then log out
 if(isset($_SESSION['username'])) {
 	unset($_SESSION['username']);
     session_destroy();

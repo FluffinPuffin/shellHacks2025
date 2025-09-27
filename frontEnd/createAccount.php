@@ -1,7 +1,9 @@
 <?php
     session_start();
+    // is ssubmitted and not empty
     if (isset($_POST['submit']) && !empty($_POST['username']) && !empty($_POST['email']) && !empty($_POST['password'])) {
 
+        // create session for login and json fro data
         $_SESSION['username'] = $_POST['username'];
         $jsonData = json_encode($_POST);
 

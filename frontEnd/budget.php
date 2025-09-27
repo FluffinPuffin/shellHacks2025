@@ -15,6 +15,6 @@
 
 <body>
     <?php include 'navigation.php'?>
-    <p>BUDGET PAGE \<p>
+    <p>BUDGET PAGE<p>
 </body>
 </html>

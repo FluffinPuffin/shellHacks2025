@@ -1,6 +1,7 @@
-<? session_start()
+<?php 
+session_start();
 // regen button
-// save and exitcbutton
+// save and exit button
 // by month and year
 ?>
 

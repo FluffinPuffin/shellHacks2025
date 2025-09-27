@@ -1,13 +1,7 @@
 # Gemini API Setup Instructions
 
-## 1. Get Your Gemini API Key
 
-1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click "Create API Key"
-4. Copy the generated API key
-
-## 2. Set Up Environment Variables
+## 1. Set Up Environment Variables
 
 1. Copy the `.env.template` file to `.env`:
    ```bash
@@ -19,25 +13,19 @@
    GEMINI_API_KEY=your_actual_api_key_here
    ```
 
-## 3. Install Dependencies
+## 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 4. Test the Setup
+## 3. Test the Setup
 
 Run the test script to verify everything is working:
 
 ```bash
 python gemini_client.py
 ```
-
-## 5. Security Notes
-
-- Never commit your `.env` file to version control
-- The `.gitignore` file is already configured to exclude `.env` files
-- Keep your API key secure and don't share it publicly
 
 ## Usage Example
 

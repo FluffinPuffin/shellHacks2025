@@ -44,6 +44,18 @@ class DatabaseManager:
                 )
             """)
             
+            # Create user profiles table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS user_profiles (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    profile_id TEXT UNIQUE NOT NULL,
+                    profile_name TEXT NOT NULL,
+                    profile_data TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
             # Create indexes for faster queries
             cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_sessions_created_at 
@@ -58,6 +70,11 @@ class DatabaseManager:
             cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_users_username 
                 ON users(username)
+            """)
+            
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_profiles_created_at 
+                ON user_profiles(created_at DESC)
             """)
             
             conn.commit()
@@ -93,12 +110,20 @@ class DatabaseManager:
                 ))
                 
                 conn.commit()
+                
+                # Ensure cleanup happens after commit
+                self._cleanup_old_sessions(conn)
+                conn.commit()
+                
                 return True
-        except sqlite3.IntegrityError:
+        except sqlite3.IntegrityError as e:
             # Session ID already exists
+            print(f"Session {session_id} already exists: {e}")
             return False
         except Exception as e:
             print(f"Error creating session: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def get_session(self, session_id: str) -> Optional[Dict]:
@@ -160,6 +185,12 @@ class DatabaseManager:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
                 
+                # First check if session exists
+                cursor.execute("SELECT session_id FROM sessions WHERE session_id = ?", (session_id,))
+                if not cursor.fetchone():
+                    print(f"Session {session_id} not found in database")
+                    return False
+                
                 # Build dynamic update query
                 set_clauses = []
                 values = []
@@ -171,8 +202,17 @@ class DatabaseManager:
                     elif key == 'user_data':
                         set_clauses.append(f"{key} = ?")
                         values.append(json.dumps(value))
+                    elif key == 'household_data':
+                        # Map household_data to user_data in the database
+                        set_clauses.append(f"user_data = ?")
+                        values.append(json.dumps(value))
+                    else:
+                        # Handle any other fields that might be passed
+                        set_clauses.append(f"{key} = ?")
+                        values.append(json.dumps(value) if isinstance(value, (dict, list)) else value)
                 
                 if not set_clauses:
+                    print("No valid update fields found")
                     return False
                 
                 # Add updated_at timestamp
@@ -187,11 +227,19 @@ class DatabaseManager:
                 """
                 
                 cursor.execute(query, values)
+                
+                # Clean up old sessions after update too
+                self._cleanup_old_sessions(conn)
+                
                 conn.commit()
                 
-                return cursor.rowcount > 0
+                rowcount = cursor.rowcount
+                
+                return rowcount > 0
         except Exception as e:
             print(f"Error updating session: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def delete_session(self, session_id: str) -> bool:
@@ -215,15 +263,36 @@ class DatabaseManager:
         count = cursor.fetchone()[0]
         
         # If more than 3 sessions, delete the oldest ones
-        if count >= 3:
+        if count > 3:
+            # Get the IDs of the 3 most recent sessions
             cursor.execute("""
-                DELETE FROM sessions 
-                WHERE id NOT IN (
-                    SELECT id FROM sessions 
-                    ORDER BY created_at DESC 
-                    LIMIT 3
-                )
+                SELECT id FROM sessions 
+                ORDER BY created_at DESC 
+                LIMIT 3
             """)
+            recent_ids = [row[0] for row in cursor.fetchall()]
+            
+            # Delete all sessions that are not in the recent 3
+            if recent_ids:
+                placeholders = ','.join('?' for _ in recent_ids)
+                cursor.execute(f"""
+                    DELETE FROM sessions 
+                    WHERE id NOT IN ({placeholders})
+                """, recent_ids)
+                
+                deleted_count = cursor.rowcount
+                print(f"Auto-cleanup: Kept 3 most recent sessions (deleted {deleted_count} old sessions)")
+    
+    def cleanup_old_sessions(self):
+        """Public method to clean up old sessions"""
+        try:
+            with self.get_connection() as conn:
+                self._cleanup_old_sessions(conn)
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Error cleaning up sessions: {e}")
+            return False
     
     def get_session_count(self) -> int:
         """Get total number of sessions"""
@@ -235,6 +304,125 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error getting session count: {e}")
             return 0
+    
+    def clear_all_sessions(self) -> bool:
+        """Clear all sessions from the database"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM sessions")
+                conn.commit()
+                print("All sessions cleared from database")
+                return True
+        except Exception as e:
+            print(f"Error clearing all sessions: {e}")
+            return False
+    
+    # Profile Management Methods
+    
+    def create_profile(self, profile_id: str, profile_data: dict) -> bool:
+        """Create a new user profile"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO user_profiles (profile_id, profile_name, profile_data, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    profile_id,
+                    profile_data.get('profile_name', 'Unnamed Profile'),
+                    json.dumps(profile_data),
+                    datetime.now().isoformat(),
+                    datetime.now().isoformat()
+                ))
+                conn.commit()
+                print(f"Profile created: {profile_id}")
+                return True
+        except Exception as e:
+            print(f"Error creating profile: {e}")
+            return False
+    
+    def get_profile(self, profile_id: str) -> dict:
+        """Get a specific profile by ID"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT profile_data, created_at, updated_at 
+                    FROM user_profiles 
+                    WHERE profile_id = ?
+                """, (profile_id,))
+                result = cursor.fetchone()
+                
+                if result:
+                    profile_data = json.loads(result[0])
+                    profile_data['created_at'] = result[1]
+                    profile_data['updated_at'] = result[2]
+                    return profile_data
+                return None
+        except Exception as e:
+            print(f"Error getting profile: {e}")
+            return None
+    
+    def get_all_profiles(self) -> list:
+        """Get all user profiles"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT profile_id, profile_name, profile_data, created_at, updated_at
+                    FROM user_profiles 
+                    ORDER BY created_at DESC
+                """)
+                results = cursor.fetchall()
+                
+                profiles = []
+                for row in results:
+                    profile_data = json.loads(row[2])
+                    profile_data['profile_id'] = row[0]
+                    profile_data['created_at'] = row[3]
+                    profile_data['updated_at'] = row[4]
+                    profiles.append(profile_data)
+                
+                return profiles
+        except Exception as e:
+            print(f"Error getting profiles: {e}")
+            return []
+    
+    def update_profile(self, profile_id: str, profile_data: dict) -> bool:
+        """Update an existing profile"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE user_profiles 
+                    SET profile_name = ?, profile_data = ?, updated_at = ?
+                    WHERE profile_id = ?
+                """, (
+                    profile_data.get('profile_name', 'Unnamed Profile'),
+                    json.dumps(profile_data),
+                    datetime.now().isoformat(),
+                    profile_id
+                ))
+                conn.commit()
+                print(f"Profile updated: {profile_id}")
+                return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error updating profile: {e}")
+            return False
+    
+    def delete_profile(self, profile_id: str) -> bool:
+        """Delete a profile"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM user_profiles WHERE profile_id = ?", (profile_id,))
+                conn.commit()
+                print(f"Profile deleted: {profile_id}")
+                return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error deleting profile: {e}")
+            return False
     
     # User Management Methods
     

@@ -1,3 +1,4 @@
+
 <?php
     session_start();
     // if already logged in go home
@@ -15,6 +16,7 @@
     }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -25,6 +27,7 @@
 </head>
 
 <body>
+
     <?php include 'navigation.php'?>
     <h1> Login </h1>
     <div class = "loginpage">
@@ -45,6 +48,7 @@
             <p> Don't have an account? </p>
             <a href="createAccount.php"> Create Account </a>
         </div>
+
     </div>
 </body>
 </html>

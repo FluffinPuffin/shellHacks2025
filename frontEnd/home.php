@@ -2,7 +2,6 @@
 <?php
 session_start();
 
-// last 3 budgets
 ?>
 
 <!DOCTYPE html>
@@ -15,10 +14,10 @@ session_start();
 </head>
 
 <body>
-
     <div class="home-container">
         <?php include 'navigation.php'?>
         <h1>Welcome to AI Budget App Locator</h1>
+        <?php if (isset($_SESSION['username'])) { ?>
         <p>Hello, <?php echo $_SESSION['username'] ?? 'User'; ?>!</p>
 
         <div class="recent-budgets">
@@ -48,9 +47,7 @@ session_start();
             <?php endif; ?>
         </div>
 
-        <?php if (isset($_SESSION['username'])){
-            // display from database
-        } else {
+        <?php } else {
 
         }?>
     </div>

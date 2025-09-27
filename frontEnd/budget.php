@@ -1,13 +1,6 @@
-
 <?php
 session_start();
 require_once 'config/database.php';
-
-// Check if user is logged in
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header("Location: login.php");
-    exit();
-}
 
 // Get current session data
 $current_session = null;
@@ -30,8 +23,9 @@ $all_sessions = $db->getRecentSessions(10);
 
 <body>
     <div class="budget-container">
+        <?php include 'navigation.php'?>
         <h1>Budget Analysis</h1>
-        
+
         <?php if ($current_session): ?>
             <div class="current-session">
                 <h2>Current Session: <?php echo htmlspecialchars($current_session['session_id']); ?></h2>
@@ -43,7 +37,7 @@ $all_sessions = $db->getRecentSessions(10);
                         <p><strong>Location:</strong> <?php echo htmlspecialchars($data['location'] ?? 'N/A'); ?></p>
                         <p><strong>Household Size:</strong> <?php echo htmlspecialchars($data['household_size'] ?? 'N/A'); ?> people</p>
                         <p><strong>Housing:</strong> <?php echo htmlspecialchars($data['bedrooms'] ?? 'N/A'); ?> bedrooms, <?php echo htmlspecialchars($data['bathrooms'] ?? 'N/A'); ?> bathrooms</p>
-                        
+
                         <h3>Financial Summary</h3>
                         <p><strong>Monthly Rent:</strong> $<?php echo number_format($data['rent'] ?? 0, 2); ?></p>
                         <p><strong>Utilities:</strong> $<?php echo number_format(($data['utilities']['water'] ?? 0) + ($data['utilities']['phone'] ?? 0) + ($data['utilities']['electricity'] ?? 0) + ($data['utilities']['other'] ?? 0), 2); ?></p>
@@ -51,7 +45,7 @@ $all_sessions = $db->getRecentSessions(10);
                         <p><strong>Savings Goal:</strong> $<?php echo number_format($data['savings'] ?? 0, 2); ?></p>
                         <p><strong>Debt Payment:</strong> $<?php echo number_format($data['debt']['monthly_payment'] ?? 0, 2); ?></p>
                     </div>
-                    
+
                     <?php if ($current_session['budget_analysis']): ?>
                         <div class="analysis-results">
                             <h3>AI Budget Analysis</h3>
@@ -72,7 +66,7 @@ $all_sessions = $db->getRecentSessions(10);
                 <p>You don't have an active budget session. <a href="initialQuestions.php">Start a new budget analysis</a></p>
             </div>
         <?php endif; ?>
-        
+
         <div class="session-history">
             <h2>All Budget Sessions</h2>
             <?php if (empty($all_sessions)): ?>
@@ -87,7 +81,7 @@ $all_sessions = $db->getRecentSessions(10);
                             <p><strong>Name:</strong> <?php echo htmlspecialchars($data['name'] ?? 'N/A'); ?></p>
                             <p><strong>Location:</strong> <?php echo htmlspecialchars($data['location'] ?? 'N/A'); ?></p>
                         <?php endif; ?>
-                        <p><strong>Status:</strong> 
+                        <p><strong>Status:</strong>
                             <?php if ($session['budget_analysis']): ?>
                                 <span style="color: green;">Analysis Complete</span>
                             <?php else: ?>
@@ -99,10 +93,9 @@ $all_sessions = $db->getRecentSessions(10);
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
-        
+
         <div class="budget-actions">
             <a href="initialQuestions.php" class="btn">Start New Analysis</a>
-            <a href="home.php" class="btn">Back to Home</a>
         </div>
     </div>
 </body>

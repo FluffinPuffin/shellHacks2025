@@ -2,14 +2,10 @@
 session_start();
 
 if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) && !empty($_POST['house']) && !empty($_POST['bedroom']) && !empty($_POST['bathroom']) && !empty($_POST['location'])) {
-    // Need username from create account
-    $_SESSION['name'] = $_POST['name'];
-    $_SESSION['age'] = $_POST['age'];
-    $_SESSION['house'] = $_POST['house'];
-    $_SESSION['bedroom'] = $_POST['bedroom'];
-    $_SESSION['bathroom'] = $_POST['bathroom'];
-    $_SESSION['location'] = $_POST['location'];
-    header("Location: home.php");
+    $formData = $_POST;
+    $formData['username'] = $_SESSION['username'];
+    $jsonData = json_encode($formData);
+    header("Location: budget.php");
 } else {
     echo "<script>alert('Please fill in all fields.');</script>";
 }

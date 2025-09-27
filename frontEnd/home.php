@@ -1,5 +1,4 @@
 <?php session_start();
-<?php session_start();
 // last 3 budgets
 // Example data structure - you can populate this from database or other sources
 $destinations = [];

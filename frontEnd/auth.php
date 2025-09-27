@@ -32,10 +32,12 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
+
     <div class="auth-container">
         <h1>Authentication</h1>
         <p>Processing login...</p>
         <a href="login.php">Back to Login</a>
     </div>
+
 </body>
 </html>

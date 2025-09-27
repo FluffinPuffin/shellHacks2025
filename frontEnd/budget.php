@@ -1,5 +1,7 @@
+
 <?php 
 session_start();
+
 // regen button
 // save and exit button
 // by month and year
@@ -15,5 +17,7 @@ session_start();
 </head>
 
 <body>
+    <?php include 'navigation.php'?>
+    <p>BUDGET PAGE<p>
 </body>
 </html>

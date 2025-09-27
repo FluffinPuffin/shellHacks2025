@@ -1,4 +1,21 @@
-<?php session_start(); ?>
+
+<?php
+    session_start();
+    // if already logged in go home
+    if (isset($_SESSION['username'])) {
+        header("Location: home.php");
+        exit();
+    }
+    // when form submitted and not empty
+    if (isset($_POST['Submit']) && !empty($_POST['username']) && !empty($_POST['password'])) {
+        // Check Database for account then send to home page else pop error
+        $_SESSION['username'] = $_POST['username'];
+        // this is the json string (for login idk)
+        $jsonData = json_encode($_POST);
+        header("Location: home.php");
+    }
+?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -10,27 +27,28 @@
 </head>
 
 <body>
-    <div class="login-container">
-        <h1>AI Budget App Locator</h1>
-        <h2>Login</h2>
-        
-        <form method="post" action="auth.php">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
+
+    <?php include 'navigation.php'?>
+    <h1> Login </h1>
+    <div class = "loginpage">
+        <form id="loginpage" action="login.php" method="post">
+            <div class="UsernamePassword">
+                <div>
+                    <label for="username"> Username: </label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div>
+                    <label for="password"> Password: </label>
+                    <input type="password" id="password" name="password" required>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            
-            <div class="form-group">
-                <input type="submit" value="Login" name="login">
-            </div>
+                <input type="submit" value="submit" name="Submit">
         </form>
-        
-        <p>Don't have an account? <a href="initialQuestions.php">Get Started</a></p>
+        <div class="createAccount">
+            <p> Don't have an account? </p>
+            <a href="createAccount.php"> Create Account </a>
+        </div>
+
     </div>
 </body>
 </html>

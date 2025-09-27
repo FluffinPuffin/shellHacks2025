@@ -1,5 +1,7 @@
+
 <?php 
 session_start();
+
 // last 3 budgets
 ?>
 
@@ -13,6 +15,7 @@ session_start();
 </head>
 
 <body>
+
     <div class="home-container">
         <h1>Welcome to AI Budget App Locator</h1>
         <p>Hello, <?php echo $_SESSION['username'] ?? 'User'; ?>!</p>

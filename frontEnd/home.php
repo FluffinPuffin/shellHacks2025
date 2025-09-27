@@ -12,7 +12,8 @@
 </head>
 
 <body>
-    <section class="table-section">
+    <h1>Home</h1>
+    <section class="recentBudgets">
         <table>
             <tr>
                 <td>Row 1, Column 1</td>

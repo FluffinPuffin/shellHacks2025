@@ -7,13 +7,13 @@ from typing import List
 
 from database import db
 from models import (
-    SessionCreate, SessionUpdate, SessionResponse, 
+    SessionCreate, SessionUpdate, SessionResponse,
     AnalysisRequest, AppRecommendationRequest, APIResponse,
     HouseholdData, AppRequirements
 )
 from gemini_client import GeminiClient
 
-# Initialize FastAPI app
+
 app = FastAPI(
     title="AI Budget App Locator API",
     description="Backend API for AI-powered budget analysis and app recommendations",
@@ -52,7 +52,7 @@ async def health_check():
     """Health check endpoint"""
     session_count = db.get_session_count()
     gemini_status = "connected" if gemini_client else "disconnected"
-    
+
     return APIResponse(
         success=True,
         message="System health check",
@@ -75,9 +75,9 @@ async def create_session(session_data: SessionCreate):
             "household_data": session_data.household_data.dict(),
             "app_requirements": session_data.app_requirements.dict() if session_data.app_requirements else None
         }
-        
+
         success = db.create_session(session_data.session_id, user_data)
-        
+
         if success:
             return APIResponse(
                 success=True,
@@ -103,13 +103,13 @@ async def create_session(session_data: SessionCreate):
 async def get_session(session_id: str):
     """Get a specific session by ID"""
     session = db.get_session(session_id)
-    
+
     if not session:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Session not found"
         )
-    
+
     return SessionResponse(**session)
 
 @app.get("/sessions", response_model=List[SessionResponse])
@@ -123,15 +123,15 @@ async def update_session(session_id: str, updates: SessionUpdate):
     """Update a session with new data"""
     # Convert Pydantic model to dict, excluding None values
     update_data = {k: v for k, v in updates.dict().items() if v is not None}
-    
+
     if not update_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No update data provided"
         )
-    
+
     success = db.update_session(session_id, update_data)
-    
+
     if success:
         return APIResponse(
             success=True,
@@ -148,7 +148,7 @@ async def update_session(session_id: str, updates: SessionUpdate):
 async def delete_session(session_id: str):
     """Delete a specific session"""
     success = db.delete_session(session_id)
-    
+
     if success:
         return APIResponse(
             success=True,
@@ -171,7 +171,7 @@ async def analyze_budget(request: AnalysisRequest):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI service is not available"
         )
-    
+
     try:
         # Get session data
         session = db.get_session(request.session_id)
@@ -180,21 +180,21 @@ async def analyze_budget(request: AnalysisRequest):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Session not found"
             )
-        
+
         household_data = session['user_data']['household_data']
-        
+
         # Create comprehensive budget analysis prompt
         budget_text = f"""
         HOUSEHOLD BUDGET ANALYSIS REQUEST
-        
+
         Personal Information:
         - Name: {household_data['name']}
         - Location: {household_data['location']}
         - Household Size: {household_data['household_size']} people
         - Housing: {household_data['bedrooms']} bedrooms, {household_data['bathrooms']} bathrooms
-        
+
         MONTHLY EXPENSES BREAKDOWN:
-        
+
         Housing Costs:
         - Rent: ${household_data['rent']:.2f}
         - Utilities Total: ${household_data['utilities']['water'] + household_data['utilities']['phone'] + household_data['utilities']['electricity'] + (household_data['utilities'].get('other', 0)):.2f}
@@ -202,25 +202,25 @@ async def analyze_budget(request: AnalysisRequest):
           * Phone: ${household_data['utilities']['phone']:.2f}
           * Electricity: ${household_data['utilities']['electricity']:.2f}
           * Other Utilities: ${household_data['utilities'].get('other', 0):.2f}
-        
+
         Living Expenses:
         - Groceries: ${household_data['groceries']:.2f}
         - Savings Goal: ${household_data['savings']:.2f}
-        
+
         Debt Information:
         - Total Debt: ${household_data['debt']['total_debt']:.2f}
         - Monthly Debt Payment: ${household_data['debt']['monthly_payment']:.2f}
         - Debt Type: {household_data['debt'].get('debt_type', 'Not specified')}
         - Interest Rate: {household_data['debt'].get('interest_rate', 'Not specified')}%
-        
+
         Additional Monthly Payments:
         """
-        
+
         for i, payment in enumerate(household_data['monthly_payments'], 1):
             budget_text += f"  {i}. {payment['name']}: ${payment['amount']:.2f} ({payment.get('category', 'Uncategorized')}) - {'Essential' if payment.get('is_essential', True) else 'Optional'}\n"
-        
+
         budget_text += f"""
-        
+
         TOTAL MONTHLY EXPENSES: ${sum([
             household_data['rent'],
             household_data['utilities']['water'] + household_data['utilities']['phone'] + household_data['utilities']['electricity'] + household_data['utilities'].get('other', 0),
@@ -228,7 +228,7 @@ async def analyze_budget(request: AnalysisRequest):
             household_data['debt']['monthly_payment'],
             sum(payment['amount'] for payment in household_data['monthly_payments'])
         ]):.2f}
-        
+
         Please provide a comprehensive analysis including:
         1. Cost of living assessment for {household_data['location']}
         2. Housing cost analysis (rent vs. local averages)
@@ -239,10 +239,10 @@ async def analyze_budget(request: AnalysisRequest):
         7. Monthly payment prioritization
         8. Overall budget health score and recommendations
         """
-        
+
         # Get AI analysis
         analysis_text = gemini_client.analyze_budget_data(budget_text)
-        
+
         # Parse and structure the analysis
         analysis_data = {
             "raw_analysis": analysis_text,
@@ -260,10 +260,10 @@ async def analyze_budget(request: AnalysisRequest):
                 sum(payment['amount'] for payment in household_data['monthly_payments'])
             ])
         }
-        
+
         # Update session with analysis
         db.update_session(request.session_id, {"budget_analysis": analysis_data})
-        
+
         return APIResponse(
             success=True,
             message="Budget analysis completed",
@@ -272,7 +272,7 @@ async def analyze_budget(request: AnalysisRequest):
                 "analysis": analysis_data
             }
         )
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -287,7 +287,7 @@ async def recommend_apps(request: AppRecommendationRequest):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI service is not available"
         )
-    
+
     try:
         # Get session data
         session = db.get_session(request.session_id)
@@ -296,20 +296,20 @@ async def recommend_apps(request: AppRecommendationRequest):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Session not found"
             )
-        
+
         household_data = session['user_data']['household_data']
         app_requirements = session['user_data'].get('app_requirements', {})
-        
+
         # Create comprehensive app recommendation prompt
         requirements_text = f"""
         BUDGET APP RECOMMENDATION REQUEST
-        
+
         User Profile:
         - Name: {household_data['name']}
         - Location: {household_data['location']}
         - Household Size: {household_data['household_size']} people
         - Housing: {household_data['bedrooms']} bedrooms, {household_data['bathrooms']} bathrooms
-        
+
         Current Budget Complexity:
         - Monthly Rent: ${household_data['rent']:.2f}
         - Utilities: ${household_data['utilities']['water'] + household_data['utilities']['phone'] + household_data['utilities']['electricity'] + household_data['utilities'].get('other', 0):.2f} (water, phone, electricity)
@@ -317,19 +317,19 @@ async def recommend_apps(request: AppRecommendationRequest):
         - Savings Goal: ${household_data['savings']:.2f}
         - Debt: ${household_data['debt']['total_debt']:.2f} (${household_data['debt']['monthly_payment']:.2f}/month)
         - Additional Payments: {len(household_data['monthly_payments'])} payments totaling ${sum(payment['amount'] for payment in household_data['monthly_payments']):.2f}
-        
+
         App Requirements:
         - Features: {', '.join(app_requirements.get('features', ['expense_tracking', 'budget_planning']))}
         - Budget Range: {app_requirements.get('budget_range', 'Any')}
         - Platform: {app_requirements.get('platform', 'Any')}
         - Experience Level: {app_requirements.get('experience_level', 'Any')}
         """
-        
+
         if request.prioritize_features:
             requirements_text += f"\n- Prioritized Features: {', '.join(request.prioritize_features)}"
-        
+
         requirements_text += f"""
-        
+
         Please recommend budget apps that would work well for this user's situation, considering:
         1. Their location ({household_data['location']}) and cost of living
         2. Household size ({household_data['household_size']} people)
@@ -337,7 +337,7 @@ async def recommend_apps(request: AppRecommendationRequest):
         4. Specific features they need
         5. Their experience level
         6. Budget constraints
-        
+
         For each recommendation, provide:
         - App name and brief description
         - Key features that match their needs
@@ -346,10 +346,10 @@ async def recommend_apps(request: AppRecommendationRequest):
         - Why it's suitable for their situation
         - Platform availability
         """
-        
+
         # Get AI recommendations
         recommendations_text = gemini_client.find_budget_apps(requirements_text)
-        
+
         # Parse and structure the recommendations
         recommendations_data = {
             "raw_recommendations": recommendations_text,
@@ -369,10 +369,10 @@ async def recommend_apps(request: AppRecommendationRequest):
             "prioritized_features": request.prioritize_features,
             "recommended_at": datetime.now().isoformat()
         }
-        
+
         # Update session with recommendations
         db.update_session(request.session_id, {"app_recommendations": recommendations_data})
-        
+
         return APIResponse(
             success=True,
             message="App recommendations generated",
@@ -381,7 +381,7 @@ async def recommend_apps(request: AppRecommendationRequest):
                 "recommendations": recommendations_data
             }
         )
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -405,7 +405,7 @@ async def get_stats():
     """Get API usage statistics"""
     session_count = db.get_session_count()
     recent_sessions = db.get_recent_sessions(limit=3)
-    
+
     return APIResponse(
         success=True,
         message="API statistics",

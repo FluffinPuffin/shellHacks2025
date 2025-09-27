@@ -1,4 +1,4 @@
-<? session_start()
+<?php session_start();
 // last 3 budgets
 ?>
 

@@ -1,4 +1,14 @@
-<? session_start(); ?>
+<?php
+    session_start();
+    if (isset($_POST['Submit']) && !empty($_POST['name']) && !empty($_POST['password'])) {
+        if ($_POST['name'] == $_SESSION['username'] && $_POST['password'] == $_SESSION['password']) {
+            // Check Database for account then send to home page else pop error
+            header("Location: home.php");
+        } else {
+
+        }
+    }
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -10,9 +20,21 @@
 </head>
 
 <body>
-    <?
-
-
-    ?>
+    <h1> Login </h1>
+    <div class = "loginpage">
+        <form id="loginpage" action="login.php" method="post">
+            <div class="UsernamePassword">
+                <div>
+                    <label for="username"> Username: </label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div>
+                    <label for="password"> Password: </label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+            </div>
+                <input type="submit" value="submit" name="Submit">
+        </form>
+    </div>
 </body>
 </html>

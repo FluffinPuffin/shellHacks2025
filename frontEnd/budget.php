@@ -51,7 +51,7 @@ if (isset($_SESSION['username'])) {
 
 if (isset($_POST['Load'])) {
     // If Load button is pressed
-    //
+    // values from the database should populate the fields
 }
 
 if (isset($_POST['Generate'])) {
@@ -81,7 +81,7 @@ if (isset($_POST['Generate'])) {
 
             <form>
                 <label for="Savings"> Savings: </label>
-                <input type="text" id="Savings" name="Savings">
+                <input type="text" id="Savings" name="Savings" value=<?php // IF ELSE here ?>>
 
                 <label for="Debt"> Debt: </label>
                 <input type="text" id="Debt" name="Debt">

@@ -1,10 +1,19 @@
 
-<?php 
+<?php
 session_start();
 
 // regen button
 // save and exit button
 // by month and year
+$dbPath = 'C:/xampp/htdocs/shell/shellHacks2025/budget_app.db';
+
+// Open the database
+try {
+    $db = new SQLite3($dbPath);
+    echo "Connected to database successfully!";
+} catch (Exception $e) {
+    echo "Failed to connect: " . $e->getMessage();
+}
 ?>
 
 <!DOCTYPE html>

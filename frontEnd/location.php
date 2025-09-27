@@ -1,5 +1,24 @@
-<?php session_start();?>
+<?php session_start();
+require_once 'config/database.php';
 
+$current_session = null;
+if (isset($_SESSION['current_session_id'])) {
+    $current_session = $db->getSession($_SESSION['current_session_id']);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['submit_current'])) {
+        // Process current location form
+        // Insert/update current location data
+    }
+    
+    if (isset($_POST['submit_destination'])) {
+        // Process destination form  
+        // Insert/update destination data
+    }
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 

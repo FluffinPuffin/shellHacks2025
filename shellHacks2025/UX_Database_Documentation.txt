@@ -1,0 +1,336 @@
+AI BUDGET APP LOCATOR - DATABASE SCHEMA DOCUMENTATION
+=====================================================
+
+For UX Designer Reference
+Created: January 27, 2025
+Version: 1.0
+
+OVERVIEW
+--------
+This document provides complete information about the two main database tables used in the AI Budget App Locator. The system uses SQLite database with user authentication and session management.
+
+DATABASE TABLES
+===============
+
+1. USERS TABLE
+--------------
+Purpose: Stores user account information and authentication data
+
+Table Name: users
+Primary Key: id (auto-incrementing integer)
+
+Fields:
+- id (INTEGER, PRIMARY KEY, AUTOINCREMENT)
+  Description: Unique user identifier
+  Example: 1, 2, 3, etc.
+  Frontend Usage: Use for linking sessions to users
+
+- username (TEXT, UNIQUE, NOT NULL)
+  Description: User's chosen username for login
+  Example: "john_doe", "sarah_smith"
+  Frontend Usage: Login form input, display in user profile
+  Validation: Must be unique, no spaces recommended
+
+- password_hash (TEXT, NOT NULL)
+  Description: SHA-256 hashed password (never store plain text)
+  Example: "a1b2c3d4e5f6..." (64 character hash)
+  Frontend Usage: Never display, only for authentication
+
+- email (TEXT, NULLABLE)
+  Description: User's email address
+  Example: "john@example.com"
+  Frontend Usage: Optional registration field, password recovery
+
+- created_at (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  Description: When the user account was created
+  Example: "2025-01-27T10:30:00"
+  Frontend Usage: Display in user profile, account age
+
+- last_login (TIMESTAMP, NULLABLE)
+  Description: When the user last logged in
+  Example: "2025-01-27T15:45:00"
+  Frontend Usage: Display "Last seen" information
+
+Indexes:
+- idx_users_username: Fast username lookups for login
+
+2. SESSIONS TABLE
+-----------------
+Purpose: Stores budget analysis sessions and user data
+
+Table Name: sessions
+Primary Key: id (auto-incrementing integer)
+Foreign Key: user_id references users(id)
+
+Fields:
+- id (INTEGER, PRIMARY KEY, AUTOINCREMENT)
+  Description: Unique session identifier
+  Example: 1, 2, 3, etc.
+  Frontend Usage: Internal reference only
+
+- session_id (TEXT, UNIQUE, NOT NULL)
+  Description: Human-readable session identifier
+  Example: "session_8fc6094e8741"
+  Frontend Usage: URL parameters, session sharing
+
+- user_id (INTEGER, FOREIGN KEY)
+  Description: Links session to user account
+  Example: 1, 2, 3 (matches users.id)
+  Frontend Usage: Filter sessions by user
+
+- user_data (TEXT, NOT NULL)
+  Description: JSON string containing all household budget data
+  Frontend Usage: Parse JSON to display/edit user information
+
+- budget_analysis (TEXT, NULLABLE)
+  Description: JSON string containing AI-generated budget analysis
+  Frontend Usage: Display analysis results, insights
+
+- app_recommendations (TEXT, NULLABLE)
+  Description: JSON string containing AI-generated app recommendations
+  Frontend Usage: Display recommended budget apps
+
+- created_at (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  Description: When the session was created
+  Example: "2025-01-27T10:30:00"
+  Frontend Usage: Sort sessions by date, display creation time
+
+- updated_at (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+  Description: When the session was last modified
+  Example: "2025-01-27T15:45:00"
+  Frontend Usage: Show last activity, sort by recent updates
+
+Indexes:
+- idx_sessions_created_at: Fast sorting by creation date
+- idx_sessions_user_id: Fast user session lookups
+
+USER_DATA JSON STRUCTURE
+========================
+The user_data field contains a JSON object with the following structure:
+
+{
+  "household_data": {
+    // Personal Information
+    "name": "John Doe",                    // User's full name
+    "age": 28,                            // User's age (18-120)
+    "location": "Austin, TX",             // City, State/Country
+    
+    // Household Details
+    "household_size": 2,                  // Number of people (1+)
+    "bedrooms": 2,                        // Number of bedrooms (0+)
+    "bathrooms": 1.5,                     // Number of bathrooms (0+)
+    
+    // Housing Costs
+    "rent": 1500.0,                       // Monthly rent ($0+)
+    "utilities": {                        // Utility breakdown
+      "water": 80.0,                      // Monthly water bill
+      "phone": 120.0,                     // Monthly phone bill
+      "electricity": 150.0,               // Monthly electricity bill
+      "other": 30.0                       // Other utilities (optional)
+    },
+    
+    // Living Expenses
+    "monthly_income": 5000.0,             // Monthly income
+    "groceries": 600.0,                   // Monthly grocery budget
+    "savings": 500.0,                     // Monthly savings goal
+    
+    // Debt Information
+    "debt": {
+      "total_debt": 25000.0,              // Total debt amount
+      "monthly_payment": 300.0,           // Monthly debt payment
+      "debt_type": "student_loan",        // Type of debt (optional)
+      "interest_rate": 4.5                // Interest rate % (optional)
+    },
+    
+    // Additional Monthly Payments (up to 4)
+    "monthly_payments": [
+      {
+        "name": "Car Payment",            // Payment description
+        "amount": 350.0,                  // Monthly amount
+        "category": "transportation",     // Payment category (optional)
+        "is_essential": true              // Essential vs optional
+      },
+      {
+        "name": "Gym Membership",
+        "amount": 50.0,
+        "category": "health",
+        "is_essential": false
+      },
+      {
+        "name": "Streaming Services",
+        "amount": 25.0,
+        "category": "entertainment",
+        "is_essential": false
+      }
+      // Can have up to 4 payments total
+    ]
+  },
+  
+  "app_requirements": {                   // Optional app preferences
+    "features": [                         // Required features
+      "expense_tracking",
+      "budget_planning",
+      "debt_tracking"
+    ],
+    "budget_range": "free",               // free, paid, premium
+    "platform": "mobile",                 // mobile, web, desktop
+    "experience_level": "beginner"        // beginner, intermediate, advanced
+  }
+}
+
+CALCULATED FIELDS
+=================
+These values can be calculated from the stored data:
+
+- total_utilities: water + phone + electricity + other
+- total_monthly_expenses: rent + total_utilities + groceries + debt.monthly_payment + sum(monthly_payments)
+- total_yearly_expenses: total_monthly_expenses * 12
+- total_monthly_income: (calculated from user input or separate field)
+- total_yearly_income: total_monthly_income * 12
+- monthly_savings_potential: total_monthly_income - total_monthly_expenses
+- yearly_savings_potential: monthly_savings_potential * 12
+- budget_health_score: (savings / total_monthly_expenses) * 100
+- debt_to_income_ratio: (debt.monthly_payment / total_monthly_income) * 100
+- savings_rate: (savings / total_monthly_income) * 100
+
+FRONTEND FORM FIELDS
+====================
+Based on the database structure, here are the form fields needed:
+
+PERSONAL INFORMATION SECTION:
+- Name (text input, required)
+- Age (number input, required, 18-120)
+- Location (text input, required)
+
+HOUSEHOLD DETAILS SECTION:
+- Household Size (number input, required, 1+)
+- Bedrooms (number input, required, 0+)
+- Bathrooms (number input, required, 0+, allow decimals)
+
+HOUSING COSTS SECTION:
+- Monthly Rent (currency input, required, $0+)
+- Water Bill (currency input, required, $0+)
+- Phone Bill (currency input, required, $0+)
+- Electricity Bill (currency input, required, $0+)
+- Other Utilities (currency input, optional, $0+)
+
+LIVING EXPENSES SECTION:
+- Monthly Income (currency input, required, $0+)
+- Monthly Groceries (currency input, required, $0+)
+- Monthly Savings Goal (currency input, required, $0+)
+
+DEBT INFORMATION SECTION:
+- Total Debt Amount (currency input, required, $0+)
+- Monthly Debt Payment (currency input, required, $0+)
+- Debt Type (dropdown, optional): student_loan, credit_card, mortgage, car_loan, personal_loan, other
+- Interest Rate (percentage input, optional, 0-100%)
+
+MONTHLY PAYMENTS SECTION (up to 4):
+For each payment:
+- Payment Name (text input, required)
+- Amount (currency input, required, $0+)
+- Category (dropdown, optional): transportation, health, entertainment, insurance, subscriptions, other
+- Essential (checkbox, default: true)
+
+APP REQUIREMENTS SECTION (optional):
+- Required Features (multi-select): expense_tracking, budget_planning, debt_tracking, savings_goals, bill_reminders, reports, sync
+- Platform (radio buttons): mobile, web, desktop, any
+- Experience Level (radio buttons): beginner, intermediate, advanced
+
+API ENDPOINTS FOR FRONTEND
+==========================
+Use these endpoints to interact with the database:
+
+AUTHENTICATION:
+- POST /register - Create new user account
+- POST /login - Authenticate user
+- GET /user/profile - Get user information
+
+SESSION MANAGEMENT:
+- POST /sessions - Create new budget session
+- GET /sessions/{session_id} - Get specific session
+- GET /sessions - Get user's recent sessions (last 3)
+- PUT /sessions/{session_id} - Update session data
+- DELETE /sessions/{session_id} - Delete session
+
+AI ANALYSIS:
+- POST /analyze-budget - Generate AI budget analysis
+- POST /recommend-apps - Generate AI app recommendations
+
+UTILITY:
+- GET /generate-session-id - Generate unique session ID
+- GET /health - Check system status
+
+DATA VALIDATION RULES
+=====================
+Implement these validation rules in the frontend:
+
+REQUIRED FIELDS:
+- name, age, location, household_size, bedrooms, bathrooms
+- monthly_income, rent, water, phone, electricity, groceries, savings
+- debt.total_debt, debt.monthly_payment
+
+NUMERIC RANGES:
+- age: 18-120
+- household_size: 1-20
+- bedrooms: 0-20
+- bathrooms: 0-20 (allow 0.5 increments)
+- All currency fields: 0-999999.99
+- interest_rate: 0-100
+
+ARRAY LIMITS:
+- monthly_payments: maximum 4 items
+- app_requirements.features: maximum 10 items
+
+BUSINESS LOGIC
+==============
+- Users can have maximum 3 active sessions (oldest deleted automatically)
+- Session IDs are unique across all users
+- Passwords are hashed with SHA-256 (never store plain text)
+- All timestamps are in ISO format
+- Currency values stored as floats (display with 2 decimal places)
+
+ERROR HANDLING
+==============
+Common error scenarios to handle:
+
+- Username already exists (registration)
+- Invalid login credentials
+- Session not found
+- Database connection errors
+- AI service unavailable
+- Invalid JSON data
+- Missing required fields
+- Numeric validation failures
+
+SECURITY CONSIDERATIONS
+=======================
+- Never display password hashes
+- Validate all user inputs
+- Sanitize data before database storage
+- Use HTTPS for all API calls
+- Implement rate limiting for login attempts
+- Hash passwords on client side before sending (optional)
+
+KEY TOTALS TO DISPLAY
+=====================
+The frontend should prominently display these calculated totals:
+
+MONTHLY TOTALS:
+- Monthly Income: $5,000.00
+- Monthly Expenses: $3,200.00
+- Monthly Savings Goal: $500.00
+- Monthly Remaining: $1,300.00
+
+YEARLY TOTALS:
+- Yearly Income: $60,000.00
+- Yearly Expenses: $38,400.00
+- Yearly Savings Goal: $6,000.00
+- Yearly Remaining: $15,600.00
+
+FINANCIAL HEALTH METRICS:
+- Savings Rate: 10.0%
+- Debt-to-Income Ratio: 6.0%
+- Budget Health Score: 85/100
+
+This documentation should provide everything needed to build the frontend interface for the AI Budget App Locator system.

@@ -3,6 +3,8 @@
     if (isset($_POST['Submit']) && !empty($_POST['name']) && !empty($_POST['password'])) {
         if ($_POST['name'] == $_SESSION['username'] && $_POST['password'] == $_SESSION['password']) {
             // Check Database for account then send to home page else pop error
+            $_SESSION['username'] = $_POST['username'];
+            $jsonData = json_encode($_POST);
             header("Location: home.php");
         } else {
 
@@ -26,7 +28,7 @@
             <div class="UsernamePassword">
                 <div>
                     <label for="username"> Username: </label>
-                    <input type="text" id="name" name="name" required>
+                    <input type="text" id="username" name="username" required>
                 </div>
                 <div>
                     <label for="password"> Password: </label>

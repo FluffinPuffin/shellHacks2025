@@ -3,6 +3,7 @@
     if (isset($_POST['submit']) && !empty($_POST['username']) && !empty($_POST['email']) && !empty($_POST['password'])) {
         $_SESSION['username'] = $_POST['username'];
         $jsonData = json_encode($_POST);
+
         header("Location: initialQuestions.php");
     } else if (isset($_POST['submit'])) {
 

@@ -1,19 +1,27 @@
 <?php 
 session_start();
+require_once 'config/database.php';
 
-// Simple authentication (for demo purposes)
+// Handle login form submission
 if (isset($_POST['login'])) {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     
-    // Simple demo authentication - replace with proper database check
-    if ($username === 'demo' && $password === 'demo') {
-        $_SESSION['logged_in'] = true;
-        $_SESSION['username'] = $username;
-        header("Location: home.php");
-        exit();
+    if (!empty($username) && !empty($password)) {
+        $user = $db->authenticateUser($username, $password);
+        
+        if ($user) {
+            $_SESSION['logged_in'] = true;
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['email'] = $user['email'];
+            header("Location: home.php");
+            exit();
+        } else {
+            $error = "Invalid username or password";
+        }
     } else {
-        $error = "Invalid username or password";
+        $error = "Please enter both username and password";
     }
 }
 

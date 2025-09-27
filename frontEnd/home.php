@@ -1,8 +1,9 @@
 
-<?php 
+<?php
 session_start();
 
-// last 3 budgets
+// if user is logged in, show recent budgets
+// connect to database here
 ?>
 
 <!DOCTYPE html>
@@ -17,19 +18,20 @@ session_start();
 <body>
 
     <div class="home-container">
+        <?php include 'navigation.php'?>
         <h1>Welcome to AI Budget App Locator</h1>
         <p>Hello, <?php echo $_SESSION['username'] ?? 'User'; ?>!</p>
-        
-        <div class="navigation">
-            <a href="initialQuestions.php" class="btn">Start New Budget Analysis</a>
-            <a href="budget.php" class="btn">View Budget</a>
-            <a href="logout.php" class="btn">Logout</a>
-        </div>
-        
+
         <div class="recent-budgets">
             <h2>Recent Budgets</h2>
             <p>Your last 3 budget analyses will appear here.</p>
         </div>
+
+        <?php if (isset($_SESSION['username'])){
+            // display from database
+        } else {
+
+        }?>
     </div>
 </body>
 </html>

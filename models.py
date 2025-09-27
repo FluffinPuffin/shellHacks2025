@@ -32,6 +32,7 @@ class HouseholdData(BaseModel):
     """Model for comprehensive household budget data"""
     # Personal Information
     name: str = Field(..., description="User's name")
+    age: int = Field(..., ge=18, le=120, description="User's age")
     location: str = Field(..., description="City, State/Country")
     
     # Household Details
@@ -77,6 +78,7 @@ class HouseholdData(BaseModel):
         json_schema_extra = {
             "example": {
                 "name": "John Doe",
+                "age": 28,
                 "location": "Austin, TX",
                 "household_size": 2,
                 "bedrooms": 2,

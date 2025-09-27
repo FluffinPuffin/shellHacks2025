@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import hashlib
 from datetime import datetime
 from typing import List, Dict, Optional
 from contextlib import contextmanager
@@ -16,23 +17,47 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             
-            # Create sessions table
+            # Create users table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    email TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP
+                )
+            """)
+            
+            # Create sessions table (updated with user_id)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS sessions (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     session_id TEXT UNIQUE NOT NULL,
+                    user_id INTEGER,
                     user_data TEXT NOT NULL,
                     budget_analysis TEXT,
                     app_recommendations TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
                 )
             """)
             
-            # Create index for faster queries
+            # Create indexes for faster queries
             cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_sessions_created_at 
                 ON sessions(created_at DESC)
+            """)
+            
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_sessions_user_id 
+                ON sessions(user_id)
+            """)
+            
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_users_username 
+                ON users(username)
             """)
             
             conn.commit()
@@ -210,6 +235,171 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error getting session count: {e}")
             return 0
+    
+    # User Management Methods
+    
+    def hash_password(self, password: str) -> str:
+        """Hash a password using SHA-256"""
+        return hashlib.sha256(password.encode()).hexdigest()
+    
+    def create_user(self, username: str, password: str, email: Optional[str] = None) -> bool:
+        """Create a new user"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Check if username already exists
+                cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+                if cursor.fetchone():
+                    return False
+                
+                # Hash password and create user
+                password_hash = self.hash_password(password)
+                cursor.execute("""
+                    INSERT INTO users (username, password_hash, email, created_at)
+                    VALUES (?, ?, ?, ?)
+                """, (username, password_hash, email, datetime.now().isoformat()))
+                
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Error creating user: {e}")
+            return False
+    
+    def authenticate_user(self, username: str, password: str) -> Optional[Dict]:
+        """Authenticate a user and return user data"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                password_hash = self.hash_password(password)
+                
+                cursor.execute("""
+                    SELECT id, username, email, created_at FROM users 
+                    WHERE username = ? AND password_hash = ?
+                """, (username, password_hash))
+                
+                row = cursor.fetchone()
+                if row:
+                    # Update last login
+                    cursor.execute("""
+                        UPDATE users SET last_login = ? WHERE id = ?
+                    """, (datetime.now().isoformat(), row[0]))
+                    conn.commit()
+                    
+                    return {
+                        'id': row[0],
+                        'username': row[1],
+                        'email': row[2],
+                        'created_at': row[3]
+                    }
+                return None
+        except Exception as e:
+            print(f"Error authenticating user: {e}")
+            return None
+    
+    def get_user_by_id(self, user_id: int) -> Optional[Dict]:
+        """Get user by ID"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT id, username, email, created_at, last_login FROM users 
+                    WHERE id = ?
+                """, (user_id,))
+                
+                row = cursor.fetchone()
+                if row:
+                    return {
+                        'id': row[0],
+                        'username': row[1],
+                        'email': row[2],
+                        'created_at': row[3],
+                        'last_login': row[4]
+                    }
+                return None
+        except Exception as e:
+            print(f"Error getting user: {e}")
+            return None
+    
+    def get_user_sessions(self, user_id: int, limit: int = 3) -> List[Dict]:
+        """Get sessions for a specific user"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT * FROM sessions 
+                    WHERE user_id = ?
+                    ORDER BY created_at DESC 
+                    LIMIT ?
+                """, (user_id, limit))
+                
+                sessions = []
+                for row in cursor.fetchall():
+                    sessions.append({
+                        'id': row[0],
+                        'session_id': row[1],
+                        'user_id': row[2],
+                        'user_data': json.loads(row[3]),
+                        'budget_analysis': json.loads(row[4]) if row[4] else None,
+                        'app_recommendations': json.loads(row[5]) if row[5] else None,
+                        'created_at': row[6],
+                        'updated_at': row[7]
+                    })
+                
+                return sessions
+        except Exception as e:
+            print(f"Error getting user sessions: {e}")
+            return []
+    
+    def create_session_with_user(self, session_id: str, user_id: int, user_data: Dict) -> bool:
+        """Create a new session with user association"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Clean up old sessions for this user (keep only 3 most recent)
+                self._cleanup_old_user_sessions(conn, user_id)
+                
+                # Insert new session
+                cursor.execute("""
+                    INSERT INTO sessions (session_id, user_id, user_data, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    session_id,
+                    user_id,
+                    json.dumps(user_data),
+                    datetime.now().isoformat(),
+                    datetime.now().isoformat()
+                ))
+                
+                conn.commit()
+                return True
+        except sqlite3.IntegrityError:
+            # Session ID already exists
+            return False
+        except Exception as e:
+            print(f"Error creating session with user: {e}")
+            return False
+    
+    def _cleanup_old_user_sessions(self, conn, user_id: int):
+        """Keep only the 3 most recent sessions for a user"""
+        cursor = conn.cursor()
+        
+        # Get count of sessions for this user
+        cursor.execute("SELECT COUNT(*) FROM sessions WHERE user_id = ?", (user_id,))
+        count = cursor.fetchone()[0]
+        
+        # If more than 3 sessions, delete the oldest ones
+        if count >= 3:
+            cursor.execute("""
+                DELETE FROM sessions 
+                WHERE user_id = ? AND id NOT IN (
+                    SELECT id FROM sessions 
+                    WHERE user_id = ?
+                    ORDER BY created_at DESC 
+                    LIMIT 3
+                )
+            """, (user_id, user_id))
 
 # Global database instance
 db = DatabaseManager()

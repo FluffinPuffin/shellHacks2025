@@ -3,6 +3,107 @@
 /* Create Account */
 
 /* Home */
+/* Homepage general style (full width, full height) */
+.home-container {
+    padding: 2em;
+    background-color: #f0f2f5;
+    /* light grey background */
+    font-family: Arial, sans-serif;
+}
+
+/* Welcome message */
+.home-container h1 {
+    text-align: center;
+    color: #1a3f5c;
+    /* dark blue text */
+    margin-bottom: 1em;
+}
+
+/* Buttons (Start/View/Location) */
+.navigation form input[type="submit"] {
+    background-color: #cfe2f3;
+    /* soft blue */
+    border: 1px solid #a1c4e9;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 1em;
+    border-radius: 4px;
+    margin: 0.5em;
+    color: #1a3f5c;
+    /* dark blue text */
+}
+
+.navigation form input[type="submit"]:hover {
+    background-color: #9fc5e8;
+    /* darker blue on hover */
+    color: #fff;
+}
+
+/* Recent budgets section */
+.recent-budgets {
+    margin-top: 2em;
+    padding: 1em;
+    background-color: #e6edf5;
+    /* very light blue */
+    border-radius: 6px;
+}
+
+.budget-session {
+    padding: 0.8em;
+    border-bottom: 1px solid #c1d3e0;
+}
+
+.budget-session:last-child {
+    border-bottom: none;
+}
+
+.budget-session h3 {
+    margin: 0 0 0.3em 0;
+    color: #1a3f5c;
+}
+
+.budget-session p {
+    margin: 0.2em 0;
+    color: #333;
+}
+
+/* Navigation */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+    background-color: #cfe2f3;
+    /* soft blue nav bar */
+    width: 100%;
+    height: 50px;
+}
+
+.nav-links li {
+    flex: 1;
+}
+
+.nav-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-decoration: none;
+    color: #1a3f5c;
+    transition: background-color 0.3s, color 0.3s;
+    font-weight: bold;
+}
+
+.nav-links a:hover {
+    background-color: #9fc5e8;
+    /* hover darker blue */
+    color: #fff;
+}
+
+/* Profile section */
 
 /* Initial Questions Style */
 

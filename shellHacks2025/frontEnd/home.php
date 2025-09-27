@@ -35,8 +35,9 @@ if (isset($_POST['new'])) {
 </head>
 
 <body>
-    <div class="home-container">
+
         <?php include 'navigation.php'?>
+    <div class="home-container">
         <h1>Welcome to AI Budget App Locator</h1>
         <?php if (isset($_SESSION['username'])) { ?>
         <p>Hello, <?php echo $_SESSION['username'] ?? 'User'; ?>!</p>

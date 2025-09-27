@@ -1,4 +1,4 @@
-<? session_start()
+<?php session_start();
 // last 3 budgets
 ?>
 
@@ -12,5 +12,7 @@
 </head>
 
 <body>
+    <?php include 'navigation.php'?>
+    <p>HOME PAGE <p>
 </body>
 </html>

@@ -1,14 +1,14 @@
 <?php
     session_start();
-    if (isset($_POST['Submit']) && !empty($_POST['name']) && !empty($_POST['password'])) {
-        if ($_POST['name'] == $_SESSION['username'] && $_POST['password'] == $_SESSION['password']) {
-            // Check Database for account then send to home page else pop error
-            $_SESSION['username'] = $_POST['username'];
-            $jsonData = json_encode($_POST);
-            header("Location: home.php");
-        } else {
-
-        }
+    if (isset($_SESSION['username'])) {
+        header("Location: home.php");
+        exit();
+    }
+    if (isset($_POST['Submit']) && !empty($_POST['username']) && !empty($_POST['password'])) {
+        // Check Database for account then send to home page else pop error
+        $_SESSION['username'] = $_POST['username'];
+        $jsonData = json_encode($_POST);
+        header("Location: home.php");
     }
 ?>
 
@@ -22,6 +22,7 @@
 </head>
 
 <body>
+    <?php include 'navigation.php'?>
     <h1> Login </h1>
     <div class = "loginpage">
         <form id="loginpage" action="login.php" method="post">
@@ -37,6 +38,10 @@
             </div>
                 <input type="submit" value="submit" name="Submit">
         </form>
+        <div class="createAccount">
+            <p> Don't have an account? </p>
+            <a href="createAccount.php"> Create Account </a>
+        </div>
     </div>
 </body>
 </html>

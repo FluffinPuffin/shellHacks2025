@@ -3,11 +3,8 @@ session_start();
 
 if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) && !empty($_POST['house']) && !empty($_POST['bedroom']) && !empty($_POST['bathroom']) && !empty($_POST['location'])) {
     $formData = $_POST;
-    $formData['username'] = $_SESSION['username'];
     $jsonData = json_encode($formData);
     header("Location: budget.php");
-} else {
-    echo "<script>alert('Please fill in all fields.');</script>";
 }
 ?>
 <!DOCTYPE html>
@@ -19,6 +16,7 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
 
 </head>
 <body>
+    <?php include 'navigation.php'?>
     <h1>Tell us more about yourself</h1>
     <form id="initialQuestions" action="initialQuestions.php" method="post">
         <!-- Step 1 -->

@@ -1,10 +1,12 @@
 <?php
     session_start();
     if (isset($_POST['submit']) && !empty($_POST['username']) && !empty($_POST['email']) && !empty($_POST['password'])) {
+
         $_SESSION['username'] = $_POST['username'];
         $jsonData = json_encode($_POST);
 
         header("Location: initialQuestions.php");
+        exit();
     } else if (isset($_POST['submit'])) {
 
     }
@@ -20,18 +22,23 @@
 </head>
 
 <body>
+    <?php include 'navigation.php'?>
     <h1>Create Account</h1>
-    <form id="createAccount" action="createAccount.php" method="post">
-        <label for="username">Username:</label>
-        <input type="text" name="username" required>
+    <form id="createAccount" action="createAccount.php" method="POST">
+        <label for="username"> Username: </label>
+        <input type="text" id="username" name="username" required>
 
         <label for="email">Email:</label>
-        <input type="email" name="email" required>
+        <input type="email" name="email" id = 'email'>
 
         <label for="password">Password:</label>
-        <input type="password" name="password" required>
+        <input type="password" name="password" id = 'password'>
 
         <input type="submit" value="Create Account" name="submit">
     </form>
+    <div class="createAccount">
+        <p> Login </p>
+        <a href="login.php"> Create Account </a>
+    </div>
 </body>
 </html>

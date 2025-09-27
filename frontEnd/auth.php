@@ -1,4 +1,4 @@
-<? session_start()?>
+<?php session_start();?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -10,5 +10,7 @@
 </head>
 
 <body>
+    <?php include 'navigation.php'?>
+    <p>AUTHENTICATION <p>
 </body>
 </html>

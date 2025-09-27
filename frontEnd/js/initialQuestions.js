@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("initialQuestions");
-    const steps = form.querySelectorAll("div[class^='step-']");
-    const nextBtn = form.querySelector("input[name='Next']");
+    const steps = form.querySelectorAll(".step");
+    const nextBtn = form.querySelector("input[name='next']");
     const backBtn = form.querySelector("input[name='back']");
 
     let currentStep = 0;
@@ -10,15 +10,16 @@ document.addEventListener("DOMContentLoaded", () => {
         steps.forEach((step, i) => {
             step.style.display = i === index ? "block" : "none";
         });
-
         backBtn.style.display = index > 0 ? "inline-block" : "none";
         nextBtn.style.display = index < steps.length - 1 ? "inline-block" : "none";
     }
 
     nextBtn.addEventListener("click", () => {
-        if (currentStep < steps.length - 1) {
+        if (currentStep < steps.length - 1 && form.checkValidity()) {
             currentStep++;
             showStep(currentStep);
+        } else {
+            form.reportValidity();
         }
     });
 
@@ -29,5 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Initialize
     showStep(currentStep);
 });

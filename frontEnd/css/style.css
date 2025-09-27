@@ -1,0 +1,24 @@
+/* Initial Questions Style */
+
+/* General form styling */
+#initialQuestions {}
+
+/* Labels and inputs */
+#initialQuestions label {}
+
+#initialQuestions input[type="text"],
+#initialQuestions input[type="number"] {}
+
+/* Buttons */
+#initialQuestions input[type="button"],
+#initialQuestions input[type="submit"] {}
+
+#initialQuestions input[type="button"]:hover,
+#initialQuestions input[type="submit"]:hover {}
+
+/* Hide all steps by default (JS will show the active one) */
+.step-1,
+.step-2,
+.step-3 {
+    display: none;
+}

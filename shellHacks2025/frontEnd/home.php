@@ -12,6 +12,17 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 // Get recent sessions from database
 $recent_sessions = $db->getRecentSessions(3);
 $session_count = $db->getSessionCount();
+
+if (isset($_POST['new'])) {
+    header("Location: initialQuestions.php");
+    exit();
+} elseif (isset($_POST['budget'])) {
+    header("Location: budget.php");
+    exit();
+} elseif (isset($_POST['location'])) {
+    header("Location: location.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -29,18 +40,28 @@ $session_count = $db->getSessionCount();
         <h1>Welcome to AI Budget App Locator</h1>
         <?php if (isset($_SESSION['username'])) { ?>
         <p>Hello, <?php echo $_SESSION['username'] ?? 'User'; ?>!</p>
-        
+
         <div class="navigation">
-            <a href="initialQuestions.php" class="btn">Start New Budget Analysis</a>
-            <a href="budget.php" class="btn">View Budget</a>
-            <a href="location.php" class="btn">Location Comparison</a>
-            <a href="logout.php" class="btn">Logout</a>
+            <form id="newBudget" action="home.php" method="post">
+                <input type="submit" id="new" name="new" value="Start New Budget Analysis">
+            </form>
+
+            <form id="view" action="home.php" method="post">
+                <input type="submit" id="budget" name="budget" value ="View Budget">
+            </form>
+
+            <form id="locations" action="home.php" method="post">
+                <input type="submit" id="location" name="location" value="Location Comparison">
+            </form>
         </div>
 
         <div class="recent-budgets">
             <h2>Recent Budgets (<?php echo $session_count; ?> total)</h2>
             <?php if (empty($recent_sessions)): ?>
-                <p>No budget analyses yet. <a href="initialQuestions.php">Create your first budget analysis</a></p>
+                <p>No budget analyses yet. </p>
+                <form id="newBudget" action="home.php" method="post">
+                    <input type="submit" id="new" name="new" value="Create your first budget analysis">
+                </form>
             <?php else: ?>
                 <?php foreach ($recent_sessions as $session): ?>
                     <div class="budget-session">

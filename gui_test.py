@@ -252,12 +252,25 @@ class BudgetAppGUI:
         self.ai_household_size_var = tk.StringVar(value="2")
         ttk.Entry(location_frame, textvariable=self.ai_household_size_var, width=10).grid(row=0, column=3, padx=5)
         
-        ttk.Button(location_frame, text="Get Average Living Costs", command=self.get_average_costs).grid(row=1, column=0, columnspan=2, pady=10)
-        ttk.Button(location_frame, text="Apply to Form", command=self.apply_costs_to_form).grid(row=1, column=2, columnspan=2, pady=10)
+        # Generation mode selection
+        mode_frame = ttk.Frame(location_frame)
+        mode_frame.grid(row=1, column=0, columnspan=4, pady=5)
+        
+        ttk.Label(mode_frame, text="Generation Mode:").pack(side=tk.LEFT)
+        self.generation_mode = tk.StringVar(value="basic")
+        ttk.Radiobutton(mode_frame, text="Basic (Quick)", variable=self.generation_mode, value="basic").pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(mode_frame, text="Advanced (Detailed)", variable=self.generation_mode, value="advanced").pack(side=tk.LEFT, padx=5)
+        
+        # Main action buttons
+        button_frame1 = ttk.Frame(location_frame)
+        button_frame1.grid(row=2, column=0, columnspan=4, pady=10)
+        
+        ttk.Button(button_frame1, text="Get Average Living Costs", command=self.get_average_costs).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame1, text="Apply to Form", command=self.apply_costs_to_form).pack(side=tk.LEFT, padx=5)
         
         # Additional buttons for direct save
         button_frame2 = ttk.Frame(location_frame)
-        button_frame2.grid(row=2, column=0, columnspan=4, pady=5)
+        button_frame2.grid(row=3, column=0, columnspan=4, pady=5)
         
         ttk.Button(button_frame2, text="Create & Save Complete Profile", command=self.create_and_save_profile).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame2, text="Preview Data Structure", command=self.preview_data_structure).pack(side=tk.LEFT, padx=5)
@@ -293,6 +306,25 @@ class BudgetAppGUI:
         
         # Store current profile
         self.current_profile = None
+        
+        # Location-based cost baselines for consistency
+        self.location_baselines = {
+            'austin, tx': {'rent_multiplier': 1.0, 'income_multiplier': 1.0, 'cost_index': 1.0},
+            'san francisco, ca': {'rent_multiplier': 2.5, 'income_multiplier': 1.8, 'cost_index': 2.2},
+            'new york, ny': {'rent_multiplier': 2.2, 'income_multiplier': 1.6, 'cost_index': 2.0},
+            'los angeles, ca': {'rent_multiplier': 2.0, 'income_multiplier': 1.4, 'cost_index': 1.8},
+            'chicago, il': {'rent_multiplier': 1.2, 'income_multiplier': 1.1, 'cost_index': 1.1},
+            'houston, tx': {'rent_multiplier': 0.9, 'income_multiplier': 0.95, 'cost_index': 0.9},
+            'phoenix, az': {'rent_multiplier': 1.1, 'income_multiplier': 1.0, 'cost_index': 1.0},
+            'philadelphia, pa': {'rent_multiplier': 1.3, 'income_multiplier': 1.1, 'cost_index': 1.2},
+            'san antonio, tx': {'rent_multiplier': 0.8, 'income_multiplier': 0.9, 'cost_index': 0.85},
+            'san diego, ca': {'rent_multiplier': 1.8, 'income_multiplier': 1.3, 'cost_index': 1.6},
+            'dallas, tx': {'rent_multiplier': 1.0, 'income_multiplier': 1.0, 'cost_index': 1.0},
+            'san jose, ca': {'rent_multiplier': 2.3, 'income_multiplier': 1.7, 'cost_index': 2.1},
+            'miami, fl': {'rent_multiplier': 1.4, 'income_multiplier': 1.1, 'cost_index': 1.3},
+            'atlanta, ga': {'rent_multiplier': 1.1, 'income_multiplier': 1.0, 'cost_index': 1.0},
+            'seattle, wa': {'rent_multiplier': 1.6, 'income_multiplier': 1.3, 'cost_index': 1.5}
+        }
         
     def get_household_data(self):
         """Get household data from form inputs"""
@@ -724,90 +756,81 @@ BREAKDOWN:
         """Get average living costs for the specified location"""
         location = self.ai_location_var.get().strip()
         household_size = self.ai_household_size_var.get().strip()
+        generation_mode = self.generation_mode.get()
         
         if not location:
             messagebox.showwarning("Warning", "Please enter a location.")
             return
         
-        # Use profile data if available
-        profile_context = ""
-        if self.current_profile:
-            profile_context = f"""
-            
-            USER PROFILE CONTEXT:
-            - Name: {self.current_profile.get('name', 'N/A')}
-            - Age: {self.current_profile.get('age', 'N/A')}
-            - Current Location: {self.current_profile.get('location', 'N/A')}
-            - Household Size: {self.current_profile.get('household_size', 'N/A')}
-            - Bedrooms: {self.current_profile.get('bedrooms', 'N/A')}
-            - Bathrooms: {self.current_profile.get('bathrooms', 'N/A')}
-            - Preferred Savings Rate: {self.current_profile.get('preferred_savings_rate', 0.15) * 100:.1f}%
-            
-            Please consider this profile information when providing cost estimates.
-            """
-            
         try:
             from gemini_client import GeminiClient
             client = GeminiClient()
             
-            # Create prompt for average living costs with structured format
-            cost_prompt = f"""
-            AVERAGE LIVING COST ANALYSIS REQUEST
+            # Get baseline estimates for consistency
+            baseline_estimates = self.get_location_baseline(location, int(household_size))
             
-            Location: {location}
-            Household Size: {household_size} people
-            
-            Please provide detailed average living costs for this location. IMPORTANT: Include specific dollar amounts in a clear format.
-            
-            Please structure your response with these exact categories and include dollar amounts:
-            
-            1. HOUSING COSTS:
-               - Rent: $X,XXX (for {household_size} bedroom apartment/house)
-               - Average home prices: $XXX,XXX (if relevant)
-            
-            2. UTILITIES (Monthly averages):
-               - Water: $XX
-               - Electricity: $XX
-               - Phone/Internet: $XX
-               - Other utilities: $XX
-            
-            3. LIVING EXPENSES:
-               - Groceries: $XXX (for {household_size} people)
-               - Transportation: $XXX
-               - Healthcare/insurance: $XXX
-            
-            4. INCOME & SAVINGS:
-               - Average income: $X,XXX (monthly)
-               - Suggested savings: $XXX (15% of income)
-            
-            5. ADDITIONAL INFORMATION:
-               - Cost of living index compared to national average
-               - Any location-specific expenses or considerations
-            
-            Please ensure all dollar amounts are clearly stated with the $ symbol and specific numbers.
-            Focus on realistic, current averages for {household_size} people living in {location}.{profile_context}
-            """
-            
-            # Get AI analysis
-            cost_analysis = client.analyze_budget_data(cost_prompt)
-            
-            # Store the data for potential use
-            self.ai_cost_data = {
-                'location': location,
-                'household_size': household_size,
-                'analysis': cost_analysis
-            }
-            
-            # Display results
-            result = f"AVERAGE LIVING COSTS FOR {location.upper()}:\n"
-            result += f"Household Size: {household_size} people\n"
-            result += "=" * 60 + "\n\n"
-            result += cost_analysis
+            if generation_mode == "basic":
+                # Basic generation - quick and easy to parse
+                cost_prompt = f"give me the range of the average cost of living in an average/median {household_size} bedroom/ 1.5 bath living space in {location} based on recent sources in the format of the text below with no other text or notes \n 'rent: number - number, utilities: number - number, groceries: number - number'"
+                
+                # Get AI analysis
+                cost_analysis = client.analyze_budget_data(cost_prompt)
+                
+                # Store the data for potential use
+                self.ai_cost_data = {
+                    'location': location,
+                    'household_size': household_size,
+                    'analysis': cost_analysis,
+                    'baseline_estimates': baseline_estimates,
+                    'mode': 'basic'
+                }
+                
+                # Display results
+                result = f"BASIC COST RANGES FOR {location.upper()}:\n"
+                result += f"Household Size: {household_size} people\n"
+                result += "=" * 50 + "\n\n"
+                result += "BASELINE ESTIMATES:\n"
+                result += f"• Rent: ${baseline_estimates['rent']:,.0f}\n"
+                result += f"• Income: ${baseline_estimates['income']:,.0f}\n"
+                result += f"• Groceries: ${baseline_estimates['groceries']:,.0f}\n"
+                result += f"• Utilities: Water ${baseline_estimates['utilities']['water']:,.0f}, Electricity ${baseline_estimates['utilities']['electricity']:,.0f}, Phone ${baseline_estimates['utilities']['phone']:,.0f}\n\n"
+                result += "AI COST RANGES:\n"
+                result += "-" * 30 + "\n"
+                result += cost_analysis
+                
+            else:
+                # Advanced generation - detailed breakdown
+                cost_prompt = f"Give me a cost break down average cost of the monthly payments for {household_size} people paying for the average phone bill (no MVNO), cost of owning a car, health insurance in {location} based on recent sources only a single number per category in the format of the text below with no other text or notes \n 'Phone: number,Car: number,Health Insurance: number'"
+                
+                # Get AI analysis
+                cost_analysis = client.analyze_budget_data(cost_prompt)
+                
+                # Store the data for potential use
+                self.ai_cost_data = {
+                    'location': location,
+                    'household_size': household_size,
+                    'analysis': cost_analysis,
+                    'baseline_estimates': baseline_estimates,
+                    'mode': 'advanced'
+                }
+                
+                # Display results
+                result = f"ADVANCED COST BREAKDOWN FOR {location.upper()}:\n"
+                result += f"Household Size: {household_size} people\n"
+                result += "=" * 50 + "\n\n"
+                result += "BASELINE ESTIMATES:\n"
+                result += f"• Rent: ${baseline_estimates['rent']:,.0f}\n"
+                result += f"• Income: ${baseline_estimates['income']:,.0f}\n"
+                result += f"• Groceries: ${baseline_estimates['groceries']:,.0f}\n"
+                result += f"• Utilities: Water ${baseline_estimates['utilities']['water']:,.0f}, Electricity ${baseline_estimates['utilities']['electricity']:,.0f}, Phone ${baseline_estimates['utilities']['phone']:,.0f}\n\n"
+                result += "AI DETAILED BREAKDOWN:\n"
+                result += "-" * 30 + "\n"
+                result += cost_analysis
             
             self.cost_text.delete(1.0, tk.END)
             self.cost_text.insert(1.0, result)
             
-            messagebox.showinfo("Success", f"Average living costs retrieved for {location}")
+            messagebox.showinfo("Success", f"Average living costs retrieved for {location} ({generation_mode} mode)")
             
         except Exception as e:
             messagebox.showerror("Error", f"Failed to get average living costs: {e}")
@@ -828,27 +851,38 @@ BREAKDOWN:
             
             # Apply extracted data to form fields
             if 'rent' in extracted_data:
-                self.rent_var.set(str(extracted_data['rent']))
+                self.rent_var.set(str(int(extracted_data['rent'])))
             
             if 'utilities' in extracted_data:
                 utils = extracted_data['utilities']
                 if 'water' in utils:
-                    self.water_var.set(str(utils['water']))
+                    self.water_var.set(str(int(utils['water'])))
                 if 'electricity' in utils:
-                    self.electricity_var.set(str(utils['electricity']))
+                    self.electricity_var.set(str(int(utils['electricity'])))
                 if 'phone' in utils:
-                    self.phone_var.set(str(utils['phone']))
+                    self.phone_var.set(str(int(utils['phone'])))
                 if 'other' in utils:
-                    self.other_utilities_var.set(str(utils['other']))
+                    self.other_utilities_var.set(str(int(utils['other'])))
             
             if 'groceries' in extracted_data:
-                self.groceries_var.set(str(extracted_data['groceries']))
+                self.groceries_var.set(str(int(extracted_data['groceries'])))
             
             if 'income' in extracted_data:
-                self.income_var.set(str(extracted_data['income']))
+                self.income_var.set(str(int(extracted_data['income'])))
             
             if 'savings' in extracted_data:
-                self.savings_var.set(str(extracted_data['savings']))
+                self.savings_var.set(str(int(extracted_data['savings'])))
+            
+            # Handle advanced mode specific data
+            if 'car_payment' in extracted_data:
+                # Set first monthly payment to car payment
+                self.payment1_name_var.set("Car Payment")
+                self.payment1_amount_var.set(str(int(extracted_data['car_payment'])))
+            
+            if 'health_insurance' in extracted_data:
+                # Set second monthly payment to health insurance
+                self.payment2_name_var.set("Health Insurance")
+                self.payment2_amount_var.set(str(int(extracted_data['health_insurance'])))
             
             # Set default values for missing fields
             if not self.age_var.get():
@@ -870,86 +904,182 @@ BREAKDOWN:
             messagebox.showerror("Error", f"Failed to apply costs to form: {e}")
     
     def extract_structured_costs(self, analysis_text):
-        """Extract structured cost data from AI analysis text"""
+        """Extract structured cost data from AI analysis text with validation"""
         import re
         
         extracted = {}
         text = analysis_text.lower()
         
-        # Extract rent/housing costs
-        rent_patterns = [
-            r'rent[:\s]*\$?([0-9,]+)',
-            r'housing[:\s]*\$?([0-9,]+)',
-            r'apartment[:\s]*\$?([0-9,]+)',
-            r'home[:\s]*\$?([0-9,]+)'
-        ]
-        for pattern in rent_patterns:
-            match = re.search(pattern, text)
-            if match:
+        # Check if this is basic mode (ranges) or advanced mode (single numbers)
+        is_basic_mode = 'rent:' in text and '-' in text
+        
+        if is_basic_mode:
+            # Basic mode: extract ranges and use midpoint
+            # Rent range: "rent: 1200 - 1800"
+            rent_range_match = re.search(r'rent:\s*([0-9,]+)\s*-\s*([0-9,]+)', text)
+            if rent_range_match:
                 try:
-                    extracted['rent'] = float(match.group(1).replace(',', ''))
-                    break
+                    min_rent = float(rent_range_match.group(1).replace(',', ''))
+                    max_rent = float(rent_range_match.group(2).replace(',', ''))
+                    extracted['rent'] = (min_rent + max_rent) / 2  # Use midpoint
                 except:
-                    continue
+                    pass
+            
+            # Utilities range: "utilities: 200 - 300"
+            utilities_range_match = re.search(r'utilities:\s*([0-9,]+)\s*-\s*([0-9,]+)', text)
+            if utilities_range_match:
+                try:
+                    min_utils = float(utilities_range_match.group(1).replace(',', ''))
+                    max_utils = float(utilities_range_match.group(2).replace(',', ''))
+                    total_utils = (min_utils + max_utils) / 2
+                    # Distribute utilities proportionally
+                    extracted['utilities'] = {
+                        'water': total_utils * 0.2,
+                        'electricity': total_utils * 0.4,
+                        'phone': total_utils * 0.3,
+                        'other': total_utils * 0.1
+                    }
+                except:
+                    pass
+            
+            # Groceries range: "groceries: 400 - 600"
+            groceries_range_match = re.search(r'groceries:\s*([0-9,]+)\s*-\s*([0-9,]+)', text)
+            if groceries_range_match:
+                try:
+                    min_groceries = float(groceries_range_match.group(1).replace(',', ''))
+                    max_groceries = float(groceries_range_match.group(2).replace(',', ''))
+                    extracted['groceries'] = (min_groceries + max_groceries) / 2
+                except:
+                    pass
+        
+        else:
+            # Advanced mode: extract single numbers
+            # Phone: number
+            phone_match = re.search(r'phone:\s*([0-9,]+)', text)
+            if phone_match:
+                try:
+                    phone_value = float(phone_match.group(1).replace(',', ''))
+                    if 30 <= phone_value <= 150:
+                        extracted['utilities'] = extracted.get('utilities', {})
+                        extracted['utilities']['phone'] = phone_value
+                except:
+                    pass
+            
+            # Car: number
+            car_match = re.search(r'car:\s*([0-9,]+)', text)
+            if car_match:
+                try:
+                    car_value = float(car_match.group(1).replace(',', ''))
+                    if 200 <= car_value <= 800:
+                        # Add as monthly payment
+                        extracted['car_payment'] = car_value
+                except:
+                    pass
+            
+            # Health Insurance: number
+            health_match = re.search(r'health insurance:\s*([0-9,]+)', text)
+            if health_match:
+                try:
+                    health_value = float(health_match.group(1).replace(',', ''))
+                    if 100 <= health_value <= 600:
+                        # Add as monthly payment
+                        extracted['health_insurance'] = health_value
+                except:
+                    pass
+        
+        # Fallback: Extract rent/housing costs with validation (for both modes)
+        if 'rent' not in extracted:
+            rent_patterns = [
+                r'rent[:\s]*\$?([0-9,]+)',
+                r'housing[:\s]*\$?([0-9,]+)',
+                r'apartment[:\s]*\$?([0-9,]+)',
+                r'home[:\s]*\$?([0-9,]+)'
+            ]
+            for pattern in rent_patterns:
+                match = re.search(pattern, text)
+                if match:
+                    try:
+                        rent_value = float(match.group(1).replace(',', ''))
+                        # Validate rent is reasonable (between $500 and $5000)
+                        if 500 <= rent_value <= 5000:
+                            extracted['rent'] = rent_value
+                            break
+                    except:
+                        continue
         
         # Extract utilities
         utilities = {}
         
-        # Water
+        # Water with validation
         water_patterns = [r'water[:\s]*\$?([0-9,]+)', r'sewer[:\s]*\$?([0-9,]+)']
         for pattern in water_patterns:
             match = re.search(pattern, text)
             if match:
                 try:
-                    utilities['water'] = float(match.group(1).replace(',', ''))
-                    break
+                    water_value = float(match.group(1).replace(',', ''))
+                    # Validate water cost is reasonable (between $20 and $200)
+                    if 20 <= water_value <= 200:
+                        utilities['water'] = water_value
+                        break
                 except:
                     continue
         
-        # Electricity
+        # Electricity with validation
         electric_patterns = [r'electricity[:\s]*\$?([0-9,]+)', r'power[:\s]*\$?([0-9,]+)', r'gas[:\s]*\$?([0-9,]+)']
         for pattern in electric_patterns:
             match = re.search(pattern, text)
             if match:
                 try:
-                    utilities['electricity'] = float(match.group(1).replace(',', ''))
-                    break
+                    electric_value = float(match.group(1).replace(',', ''))
+                    # Validate electricity cost is reasonable (between $50 and $300)
+                    if 50 <= electric_value <= 300:
+                        utilities['electricity'] = electric_value
+                        break
                 except:
                     continue
         
-        # Phone/Internet
+        # Phone/Internet with validation
         phone_patterns = [r'phone[:\s]*\$?([0-9,]+)', r'internet[:\s]*\$?([0-9,]+)', r'cable[:\s]*\$?([0-9,]+)']
         for pattern in phone_patterns:
             match = re.search(pattern, text)
             if match:
                 try:
-                    utilities['phone'] = float(match.group(1).replace(',', ''))
-                    break
+                    phone_value = float(match.group(1).replace(',', ''))
+                    # Validate phone/internet cost is reasonable (between $30 and $150)
+                    if 30 <= phone_value <= 150:
+                        utilities['phone'] = phone_value
+                        break
                 except:
                     continue
         
         if utilities:
             extracted['utilities'] = utilities
         
-        # Extract groceries
+        # Extract groceries with validation
         grocery_patterns = [r'grocer[ies]*[:\s]*\$?([0-9,]+)', r'food[:\s]*\$?([0-9,]+)']
         for pattern in grocery_patterns:
             match = re.search(pattern, text)
             if match:
                 try:
-                    extracted['groceries'] = float(match.group(1).replace(',', ''))
-                    break
+                    grocery_value = float(match.group(1).replace(',', ''))
+                    # Validate groceries are reasonable (between $200 and $1000)
+                    if 200 <= grocery_value <= 1000:
+                        extracted['groceries'] = grocery_value
+                        break
                 except:
                     continue
         
-        # Extract income
+        # Extract income with validation
         income_patterns = [r'income[:\s]*\$?([0-9,]+)', r'salary[:\s]*\$?([0-9,]+)', r'wage[:\s]*\$?([0-9,]+)']
         for pattern in income_patterns:
             match = re.search(pattern, text)
             if match:
                 try:
-                    extracted['income'] = float(match.group(1).replace(',', ''))
-                    break
+                    income_value = float(match.group(1).replace(',', ''))
+                    # Validate income is reasonable (between $2000 and $15000 monthly)
+                    if 2000 <= income_value <= 15000:
+                        extracted['income'] = income_value
+                        break
                 except:
                     continue
         
@@ -958,7 +1088,106 @@ BREAKDOWN:
             suggested_savings = extracted['income'] * 0.15  # 15% of income
             extracted['savings'] = suggested_savings
         
+        # Use baseline estimates as fallbacks if AI extraction failed
+        if hasattr(self, 'ai_cost_data') and self.ai_cost_data and 'baseline_estimates' in self.ai_cost_data:
+            baseline = self.ai_cost_data['baseline_estimates']
+            
+            # Fill in missing values with baseline estimates
+            if 'rent' not in extracted:
+                extracted['rent'] = baseline['rent']
+            if 'income' not in extracted:
+                extracted['income'] = baseline['income']
+            if 'groceries' not in extracted:
+                extracted['groceries'] = baseline['groceries']
+            if 'utilities' not in extracted:
+                extracted['utilities'] = baseline['utilities']
+            if 'savings' not in extracted:
+                extracted['savings'] = baseline['savings']
+        
+        # Validate consistency between extracted values
+        extracted = self.validate_cost_consistency(extracted)
+        
         return extracted
+    
+    def validate_cost_consistency(self, extracted_data):
+        """Validate and adjust extracted data for consistency"""
+        # If we have both rent and income, ensure rent is reasonable (25-35% of income)
+        if 'rent' in extracted_data and 'income' in extracted_data:
+            rent_ratio = extracted_data['rent'] / extracted_data['income']
+            if rent_ratio > 0.4:  # If rent is more than 40% of income, adjust
+                extracted_data['rent'] = extracted_data['income'] * 0.3  # Set to 30%
+            elif rent_ratio < 0.2:  # If rent is less than 20% of income, adjust
+                extracted_data['rent'] = extracted_data['income'] * 0.25  # Set to 25%
+        
+        # If we have income but no rent, estimate rent based on income
+        if 'income' in extracted_data and 'rent' not in extracted_data:
+            extracted_data['rent'] = extracted_data['income'] * 0.3  # 30% of income
+        
+        # If we have rent but no income, estimate income based on rent
+        if 'rent' in extracted_data and 'income' not in extracted_data:
+            extracted_data['income'] = extracted_data['rent'] / 0.3  # Rent should be 30% of income
+        
+        # Ensure utilities are reasonable relative to income
+        if 'income' in extracted_data and 'utilities' in extracted_data:
+            total_utilities = sum(extracted_data['utilities'].values())
+            utility_ratio = total_utilities / extracted_data['income']
+            if utility_ratio > 0.15:  # If utilities are more than 15% of income, cap them
+                scale_factor = 0.1 / utility_ratio  # Scale to 10% of income
+                for key in extracted_data['utilities']:
+                    extracted_data['utilities'][key] *= scale_factor
+        
+        # Ensure groceries are reasonable relative to household size
+        if 'groceries' in extracted_data:
+            # Assume groceries should be $300-600 per person per month
+            # If we have household size from AI data, validate against it
+            # For now, ensure groceries are between $200 and $1000
+            if extracted_data['groceries'] < 200:
+                extracted_data['groceries'] = 300
+            elif extracted_data['groceries'] > 1000:
+                extracted_data['groceries'] = 600
+        
+        return extracted_data
+    
+    def get_location_baseline(self, location, household_size):
+        """Get baseline cost estimates for a location"""
+        location_key = location.lower().strip()
+        
+        # Find matching location in baselines
+        baseline = None
+        for key, data in self.location_baselines.items():
+            if key in location_key or location_key in key:
+                baseline = data
+                break
+        
+        # If no exact match, use Austin, TX as default
+        if not baseline:
+            baseline = self.location_baselines['austin, tx']
+        
+        # Base costs (Austin, TX baseline)
+        base_rent = 1200 + (household_size - 1) * 200  # $1200 for 1 person, +$200 per additional
+        base_income = 4000 + (household_size - 1) * 1000  # $4000 for 1 person, +$1000 per additional
+        base_groceries = 300 + (household_size - 1) * 200  # $300 for 1 person, +$200 per additional
+        
+        # Apply location multipliers
+        estimated_rent = base_rent * baseline['rent_multiplier']
+        estimated_income = base_income * baseline['income_multiplier']
+        estimated_groceries = base_groceries * baseline['cost_index']
+        
+        # Utilities scale with cost index
+        estimated_utilities = {
+            'water': 50 * baseline['cost_index'],
+            'electricity': 100 * baseline['cost_index'],
+            'phone': 80 * baseline['cost_index'],
+            'other': 30 * baseline['cost_index']
+        }
+        
+        return {
+            'rent': round(estimated_rent, 0),
+            'income': round(estimated_income, 0),
+            'groceries': round(estimated_groceries, 0),
+            'utilities': {k: round(v, 0) for k, v in estimated_utilities.items()},
+            'savings': round(estimated_income * 0.15, 0)
+        }
     
     def format_extracted_data(self, data):
         """Format extracted data for display"""

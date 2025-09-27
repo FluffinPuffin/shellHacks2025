@@ -28,6 +28,29 @@ class MonthlyPayment(BaseModel):
     category: Optional[str] = Field(None, description="Payment category")
     is_essential: bool = Field(True, description="Whether this is an essential payment")
 
+class UserProfile(BaseModel):
+    """Model for user profile with constant/default data"""
+    profile_name: str = Field(..., description="Name of the profile")
+    # Personal Information (constant)
+    name: str = Field(..., description="User's name")
+    age: int = Field(..., ge=18, le=120, description="User's age")
+    location: str = Field(..., description="Default city, State/Country")
+    
+    # Household Details (constant)
+    household_size: int = Field(..., ge=1, description="Number of people in household")
+    bedrooms: int = Field(..., ge=0, description="Number of bedrooms")
+    bathrooms: float = Field(..., ge=0, description="Number of bathrooms")
+    
+    # Default Financial Settings
+    default_utilities: UtilitiesData = Field(..., description="Default utility costs")
+    default_debt: DebtData = Field(..., description="Default debt information")
+    default_monthly_payments: List[MonthlyPayment] = Field(default_factory=list, max_items=4, description="Default monthly payments")
+    
+    # Preferences
+    preferred_savings_rate: float = Field(0.15, ge=0, le=1, description="Preferred savings rate as decimal (0.15 = 15%)")
+    created_at: Optional[str] = Field(None, description="Profile creation timestamp")
+    updated_at: Optional[str] = Field(None, description="Profile last update timestamp")
+
 class HouseholdData(BaseModel):
     """Model for comprehensive household budget data"""
     # Personal Information

@@ -1,4 +1,10 @@
 <?php session_start();?>
+require_once 'config/database.php';
+
+$current_session = null;
+if (isset($_SESSION['current_session_id'])) {
+    $current_session = $db->getSession($_SESSION['current_session_id']);
+}
 
 <!DOCTYPE html>
 <html lang="en">

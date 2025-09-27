@@ -45,6 +45,7 @@ class HouseholdData(BaseModel):
     utilities: UtilitiesData = Field(..., description="Utility breakdown")
     
     # Living Expenses
+    monthly_income: float = Field(..., ge=0, description="Monthly income")
     groceries: float = Field(..., ge=0, description="Monthly grocery budget")
     savings: float = Field(..., ge=0, description="Monthly savings goal")
     
@@ -61,6 +62,40 @@ class HouseholdData(BaseModel):
         total = self.rent + self.utilities.total + self.groceries + self.debt.monthly_payment
         total += sum(payment.amount for payment in self.monthly_payments)
         return total
+    
+    @property
+    def total_yearly_expenses(self) -> float:
+        """Calculate total yearly expenses"""
+        return self.total_monthly_expenses * 12
+    
+    @property
+    def total_yearly_income(self) -> float:
+        """Calculate total yearly income"""
+        return self.monthly_income * 12
+    
+    @property
+    def monthly_savings_potential(self) -> float:
+        """Calculate monthly savings potential"""
+        return self.monthly_income - self.total_monthly_expenses
+    
+    @property
+    def yearly_savings_potential(self) -> float:
+        """Calculate yearly savings potential"""
+        return self.monthly_savings_potential * 12
+    
+    @property
+    def savings_rate(self) -> float:
+        """Calculate savings rate as percentage"""
+        if self.monthly_income > 0:
+            return (self.savings / self.monthly_income) * 100
+        return 0.0
+    
+    @property
+    def debt_to_income_ratio(self) -> float:
+        """Calculate debt-to-income ratio as percentage"""
+        if self.monthly_income > 0:
+            return (self.debt.monthly_payment / self.monthly_income) * 100
+        return 0.0
     
     @property
     def total_utilities(self) -> float:
@@ -90,6 +125,7 @@ class HouseholdData(BaseModel):
                     "electricity": 150.0,
                     "other": 30.0
                 },
+                "monthly_income": 5000.0,
                 "groceries": 600.0,
                 "savings": 500.0,
                 "debt": {
@@ -141,6 +177,7 @@ class SessionCreate(BaseModel):
                     "bathrooms": 1.5,
                     "rent": 1500.0,
                     "utilities": {"water": 80.0, "phone": 120.0, "electricity": 150.0},
+                    "monthly_income": 5000.0,
                     "groceries": 600.0,
                     "savings": 500.0,
                     "debt": {"total_debt": 25000.0, "monthly_payment": 300.0},

@@ -7,6 +7,7 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
     $jsonData = json_encode($_POST);
     header("Location: home.php");
     exit();
+
 }
 ?>
 <!DOCTYPE html>
@@ -19,6 +20,7 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
 </head>
 <body>
     <?php include 'navigation.php'?>
+
     <h1>Tell us more about yourself</h1>
     <form id="initialQuestions" action="initialQuestions.php" method="post">
         <!-- Step 1 -->
@@ -53,5 +55,4 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
         <input type="button" value="Next" name="next">
     </form>
 </body>
-
 </html>

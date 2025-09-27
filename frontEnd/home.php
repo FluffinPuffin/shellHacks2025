@@ -1,17 +1,8 @@
 
-<?php 
+<?php
 session_start();
-require_once 'config/database.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header("Location: login.php");
-    exit();
-}
-
-// Get recent sessions from database
-$recent_sessions = $db->getRecentSessions(3);
-$session_count = $db->getSessionCount();
+// last 3 budgets
 ?>
 
 <!DOCTYPE html>
@@ -26,15 +17,10 @@ $session_count = $db->getSessionCount();
 <body>
 
     <div class="home-container">
+        <?php include 'navigation.php'?>
         <h1>Welcome to AI Budget App Locator</h1>
         <p>Hello, <?php echo $_SESSION['username'] ?? 'User'; ?>!</p>
-        
-        <div class="navigation">
-            <a href="initialQuestions.php" class="btn">Start New Budget Analysis</a>
-            <a href="budget.php" class="btn">View Budget</a>
-            <a href="logout.php" class="btn">Logout</a>
-        </div>
-        
+
         <div class="recent-budgets">
             <h2>Recent Budgets (<?php echo $session_count; ?> total)</h2>
             <?php if (empty($recent_sessions)): ?>
@@ -61,6 +47,12 @@ $session_count = $db->getSessionCount();
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
+
+        <?php if (isset($_SESSION['username'])){
+            // display from database
+        } else {
+
+        }?>
     </div>
 </body>
 </html>

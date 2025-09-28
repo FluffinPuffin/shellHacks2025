@@ -62,7 +62,7 @@ if (isset($_POST['generate_comparison'])) {
 <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <title>Location Comparison</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/style.css"/>
 </head>
 
 <body>
@@ -269,3 +269,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+

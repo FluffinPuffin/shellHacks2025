@@ -267,6 +267,24 @@ input[type="submit"]:hover {
     padding-top: 1.5em;
     border-top: 2px solid #c1d3e0;
 }
+.charts-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2em;
+    flex-wrap: wrap;
+    margin-top: 2em;
+}
+
+.chart-wrapper {
+    max-width: 600px;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 
 .total {
     font-size: 1.2em;
@@ -320,6 +338,7 @@ input[type="submit"]:hover {
 
 
 /* Profile */
+
 
 
 

@@ -12,7 +12,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) && !empty($_POST['house']) && !empty($_POST['bedroom']) && !empty($_POST['bathroom']) && !empty($_POST['location'])) {
     // Generate a unique session ID
     $session_id = 'session_' . uniqid();
-    
+
     // Prepare household data
     $household_data = [
         'name' => $_POST['name'],
@@ -38,13 +38,13 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
         ],
         'monthly_payments' => []
     ];
-    
+
     // Create session in database
     $user_data = [
         'household_data' => $household_data,
         'app_requirements' => null
     ];
-    
+
     if ($db->createSession($session_id, $user_data)) {
         $_SESSION['current_session_id'] = $session_id;
         $_SESSION['name'] = $_POST['name'];
@@ -73,10 +73,16 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
 <body>
     <?php include 'navigation.php'?>
 
+    <div class="initial-container">
     <h1>Tell us more about yourself</h1>
+
+    <?php if (!empty($error)): ?>
+        <div class="message error"><?php echo htmlspecialchars($error); ?></div>
+    <?php endif; ?>
+
     <form id="initialQuestions" action="initialQuestions.php" method="post">
         <!-- Step 1 -->
-        <div class="step step-1">
+        <div class="step step-1 active">
             <label for="name">Name:</label>
             <input type="text" name="name">
 
@@ -91,6 +97,7 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
         <div class="step step-2">
             <label for="bedroom">Bedrooms:</label>
             <input type="number" name="bedroom" min="1">
+
             <label for="bathroom">Bathrooms:</label>
             <input type="number" name="bathroom" min="1">
         </div>
@@ -103,8 +110,12 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
         </div>
 
         <!-- Navigation -->
-        <input type="button" value="Back" name="back">
-        <input type="button" value="Next" name="next">
+        <div class="navigation-buttons">
+            <input type="button" value="Back" name="back">
+            <input type="button" value="Next" name="next">
+        </div>
     </form>
+</div>
+
 </body>
 </html>

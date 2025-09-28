@@ -19,7 +19,11 @@ $session_count = $db->getSessionCount();
 
 <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-    <title> </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Budget App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css"/>
 </head>
 
@@ -31,10 +35,33 @@ $session_count = $db->getSessionCount();
         <p>Hello, <?php echo $_SESSION['username'] ?? 'User'; ?>!</p>
         
         <div class="navigation">
-            <a href="initialQuestions.php" class="btn">Start New Budget Analysis</a>
-            <a href="budget.php" class="btn">View Budget</a>
-            <a href="location.php" class="btn">Location Comparison</a>
-            <a href="logout.php" class="btn">Logout</a>
+            <a href="initialQuestions.php" class="btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                Start New Budget Analysis
+            </a>
+            <a href="budget.php" class="btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 3h18v18H3zM9 9h6v6H9z"></path>
+                </svg>
+                View Budget
+            </a>
+            <a href="location.php" class="btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                Location Comparison
+            </a>
+            <a href="logout.php" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16,17 21,12 16,7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Logout
+            </a>
         </div>
 
         <div class="recent-budgets">

@@ -1,7 +1,88 @@
 /* Budget */
 
 /* Create Account */
+/* Container for the create account section */
+.create-account-container {
+    max-width: 600px;
+    margin: 2em auto;
+    padding: 2em;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 
+/* Heading */
+.create-account-container h1 {
+    text-align: center;
+    color: #1a3f5c;
+    margin-bottom: 1.5em;
+}
+
+/* Form styling */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+}
+
+/* Form labels */
+label {
+    font-weight: bold;
+    color: #1a3f5c;
+}
+
+/* Form input fields */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    padding: 0.8em;
+    border: 1px solid #c1d3e0;
+    border-radius: 4px;
+    font-size: 1em;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Submit button styling */
+input[type="submit"] {
+    background-color: #cfe2f3;
+    border: 1px solid #a1c4e9;
+    padding: 0.8em;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 1em;
+    border-radius: 4px;
+    color: #1a3f5c;
+}
+
+input[type="submit"]:hover {
+    background-color: #9fc5e8;
+    color: #fff;
+}
+
+/* Error message styling */
+.error-message {
+    font-size: 0.9em;
+    color: #cc0000;
+    margin-top: -1em;
+    margin-bottom: 1em;
+}
+
+/* Login link styling */
+.createAccount {
+    text-align: center;
+    margin-top: 1.5em;
+}
+
+.createAccount a {
+    color: #1a3f5c;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.createAccount a:hover {
+    text-decoration: underline;
+}
 /* Home */
 /* Homepage general style (full width, full height) */
 .home-container {
@@ -237,4 +318,5 @@
 
 
 /* Profile */
+
 

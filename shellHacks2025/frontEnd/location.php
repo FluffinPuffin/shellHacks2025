@@ -241,8 +241,8 @@ function generateComparison() {
     })
     .then(response => response.text())
     .then(data => {
-        // Reload the page to show updated data
-        window.location.reload();
+        // Redirect to budget page after successful generation
+        window.location.href = 'budget.php';
     })
     .catch(error => {
         console.error('Error:', error);

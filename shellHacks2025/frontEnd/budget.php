@@ -11,12 +11,16 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 // Get current session data
 $current_session = null;
 $budget_data = null;
+$destination_data = null;
 $message = '';
 
 if (isset($_SESSION['current_session_id'])) {
     $current_session = $db->getSession($_SESSION['current_session_id']);
     if ($current_session && isset($current_session['user_data']['household_data'])) {
         $budget_data = $current_session['user_data']['household_data'];
+    }
+    if ($current_session && isset($current_session['user_data']['destination_data'])) {
+        $destination_data = $current_session['user_data']['destination_data'];
     }
 }
 
@@ -166,6 +170,7 @@ if (isset($_POST['Load'])) {
         
         if ($selected_session && isset($selected_session['user_data']['household_data'])) {
             $budget_data = $selected_session['user_data']['household_data'];
+            $destination_data = $selected_session['user_data']['destination_data'] ?? null;
             $current_session = $selected_session; // Update current session
             $_SESSION['current_session_id'] = $selected_session_id; // Update session ID
             $message = "Budget data loaded successfully!";
@@ -211,6 +216,7 @@ if (isset($_POST['Save'])) {
     $new_session_data = [
         'user_data' => [
             'household_data' => $current_budget_data,
+            'destination_data' => $current_session['user_data']['destination_data'] ?? null,
             'app_requirements' => $current_session['user_data']['app_requirements'] ?? null,
             'advanced_analysis' => $current_session['user_data']['advanced_analysis'] ?? null
         ]
@@ -386,6 +392,7 @@ if (isset($_POST['Update'])) {
         $update_data = [
             'user_data' => [
                 'household_data' => $updated_data,
+                'destination_data' => $current_session['user_data']['destination_data'] ?? null,
                 'app_requirements' => $current_session['user_data']['app_requirements'] ?? null
             ]
         ];
@@ -417,6 +424,19 @@ if (isset($_POST['Update'])) {
         
         <?php if ($message): ?>
             <div class="message"><?php echo htmlspecialchars($message); ?></div>
+        <?php endif; ?>
+        
+        <!-- Debug Information (remove in production) -->
+        <?php if (isset($_GET['debug'])): ?>
+        <div style="background-color: #f0f0f0; padding: 10px; margin: 10px; border: 1px solid #ccc;">
+            <h3>Debug Information:</h3>
+            <p><strong>Current Session ID:</strong> <?php echo $_SESSION['current_session_id'] ?? 'Not set'; ?></p>
+            <p><strong>Budget Data:</strong> <?php echo $budget_data ? 'Loaded' : 'Not loaded'; ?></p>
+            <p><strong>Destination Data:</strong> <?php echo $destination_data ? 'Loaded' : 'Not loaded'; ?></p>
+            <?php if ($current_session): ?>
+                <p><strong>Session Data Keys:</strong> <?php echo implode(', ', array_keys($current_session['user_data'] ?? [])); ?></p>
+            <?php endif; ?>
+        </div>
         <?php endif; ?>
         
         <div class="budget-actions">
@@ -577,7 +597,111 @@ if (isset($_POST['Update'])) {
                 </tr>
             </table>
         </form>
-        
+
+        <!-- Location Comparison Section -->
+        <?php if ($destination_data): ?>
+        <div class="location-comparison">
+            <h2>Location Comparison</h2>
+            <div class="comparison-container">
+                <div class="comparison-card current-location">
+                    <h3>Current Location</h3>
+                    <div class="comparison-item">
+                        <strong>Location:</strong> <?php echo htmlspecialchars($budget_data['location'] ?? 'N/A'); ?>
+                    </div>
+                    <div class="comparison-item">
+                        <strong>Household Size:</strong> <?php echo htmlspecialchars($budget_data['household_size'] ?? 'N/A'); ?>
+                    </div>
+                    <div class="comparison-item">
+                        <strong>Bedrooms/Bathrooms:</strong> <?php echo htmlspecialchars(($budget_data['bedrooms'] ?? 'N/A') . '/' . ($budget_data['bathrooms'] ?? 'N/A')); ?>
+                    </div>
+                    <div class="comparison-item">
+                        <strong>Rent:</strong> $<?php echo number_format($budget_data['rent'] ?? 0, 2); ?>
+                    </div>
+                    <div class="comparison-item">
+                        <strong>Utilities:</strong> $<?php echo number_format($budget_data['utilities']['water'] ?? 0, 2); ?>
+                    </div>
+                    <div class="comparison-item">
+                        <strong>Groceries:</strong> $<?php echo number_format($budget_data['groceries'] ?? 0, 2); ?>
+                    </div>
+                    <div class="comparison-item total">
+                        <strong>Total Monthly:</strong> $<?php 
+                            $current_total = ($budget_data['rent'] ?? 0) + 
+                                           ($budget_data['utilities']['water'] ?? 0) + 
+                                           ($budget_data['groceries'] ?? 0);
+                            echo number_format($current_total, 2);
+                        ?>
+                    </div>
+                </div>
+                
+                <div class="comparison-card destination-location">
+                    <h3>Destination Location</h3>
+                    <div class="comparison-item">
+                        <strong>Location:</strong> <?php echo htmlspecialchars($destination_data['location'] ?? 'N/A'); ?>
+                    </div>
+                    <div class="comparison-item">
+                        <strong>Household Size:</strong> <?php echo htmlspecialchars($destination_data['household_size'] ?? 'N/A'); ?>
+                    </div>
+                    <div class="comparison-item">
+                        <strong>Bedrooms/Bathrooms:</strong> <?php echo htmlspecialchars(($destination_data['bedrooms'] ?? 'N/A') . '/' . ($destination_data['bathrooms'] ?? 'N/A')); ?>
+                    </div>
+                    <div class="comparison-item">
+                        <strong>Rent:</strong> $<?php echo number_format($destination_data['rent'] ?? 0, 2); ?>
+                    </div>
+                    <div class="comparison-item">
+                        <strong>Utilities:</strong> $<?php echo number_format($destination_data['utilities'] ?? 0, 2); ?>
+                    </div>
+                    <div class="comparison-item">
+                        <strong>Groceries:</strong> $<?php echo number_format($destination_data['groceries'] ?? 0, 2); ?>
+                    </div>
+                    <div class="comparison-item total">
+                        <strong>Total Monthly:</strong> $<?php 
+                            $destination_total = ($destination_data['rent'] ?? 0) + 
+                                               ($destination_data['utilities'] ?? 0) + 
+                                               ($destination_data['groceries'] ?? 0);
+                            echo number_format($destination_total, 2);
+                        ?>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Comparison Summary -->
+            <div class="comparison-summary">
+                <h3>Comparison Summary</h3>
+                <div class="summary-item">
+                    <strong>Monthly Difference:</strong> 
+                    <?php 
+                        $difference = $destination_total - $current_total;
+                        $difference_text = $difference >= 0 ? '+' : '';
+                        $difference_color = $difference >= 0 ? 'red' : 'green';
+                        echo '<span style="color: ' . $difference_color . ';">' . $difference_text . '$' . number_format($difference, 2) . '</span>';
+                    ?>
+                </div>
+                <div class="summary-item">
+                    <strong>Annual Difference:</strong> 
+                    <?php 
+                        $annual_difference = $difference * 12;
+                        $annual_difference_text = $annual_difference >= 0 ? '+' : '';
+                        $annual_difference_color = $annual_difference >= 0 ? 'red' : 'green';
+                        echo '<span style="color: ' . $annual_difference_color . ';">' . $annual_difference_text . '$' . number_format($annual_difference, 2) . '</span>';
+                    ?>
+                </div>
+                <div class="summary-item">
+                    <strong>Percentage Change:</strong> 
+                    <?php 
+                        if ($current_total > 0) {
+                            $percentage_change = (($destination_total - $current_total) / $current_total) * 100;
+                            $percentage_text = $percentage_change >= 0 ? '+' : '';
+                            $percentage_color = $percentage_change >= 0 ? 'red' : 'green';
+                            echo '<span style="color: ' . $percentage_color . ';">' . $percentage_text . number_format($percentage_change, 1) . '%</span>';
+                        } else {
+                            echo 'N/A';
+                        }
+                    ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Advanced Analysis Section -->
         <?php if (isset($current_session['user_data']['advanced_analysis'])): ?>
             <?php $analysis = $current_session['user_data']['advanced_analysis']; ?>

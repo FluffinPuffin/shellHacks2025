@@ -216,9 +216,11 @@ input[type="submit"]:hover {
 /* Flex container for forms */
 .reports-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: center; 
+    align-items: center;
     gap: 2em;
     flex-wrap: wrap;
+    margin-top: 2em;
 }
 
 /* Individual location form styling */
@@ -318,5 +320,6 @@ input[type="submit"]:hover {
 
 
 /* Profile */
+
 
 

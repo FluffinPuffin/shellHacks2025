@@ -113,7 +113,6 @@ if (isset($_POST['generate_comparison'])) {
 <body>
     <?php include 'navigation.php'?>
     <?php if (isset($message)): ?>
-        <div style="background-color: #d4edda; color: #155724; padding: 10px; margin: 10px; border-radius: 5px;">
             <?php echo htmlspecialchars($message); ?>
         </div>
     <?php endif; ?>
@@ -322,4 +321,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+
 

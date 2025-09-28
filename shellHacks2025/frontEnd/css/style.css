@@ -115,6 +115,81 @@
 }
 
 /* Location */
+/* Container for the comparison section */
+.compare-section {
+    max-width: 1200px;
+    margin: 2em auto;
+    padding: 2em;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading */
+.compare-section h1 {
+    text-align: center;
+    color: #1a3f5c;
+    margin-bottom: 1.5em;
+}
+
+/* Flex container for forms */
+.reports-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 2em;
+    flex-wrap: wrap;
+}
+
+/* Individual location form styling */
+.location-form {
+    flex: 1;
+    min-width: 280px;
+    background-color: #e6edf5;
+    border-radius: 6px;
+    padding: 1.5em;
+    box-sizing: border-box;
+    border: 1px solid #c1d3e0;
+}
+
+/* Form headers */
+.location-form h3 {
+    color: #1a3f5c;
+    margin-top: 0;
+    margin-bottom: 1em;
+}
+
+/* Form input fields */
+.report-item {
+    margin-bottom: 1em;
+}
+
+.report-item label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+}
+
+.report-item input {
+    width: 100%;
+    padding: 0.8em;
+    border: 1px solid #c1d3e0;
+    border-radius: 4px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+/* Total cost section */
+.cost-section {
+    margin-top: 1.5em;
+    padding-top: 1.5em;
+    border-top: 2px solid #c1d3e0;
+}
+
+.total {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #1a3f5c;
+}
 
 /* Login */
 
@@ -162,3 +237,4 @@
 
 
 /* Profile */
+

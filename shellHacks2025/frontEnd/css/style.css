@@ -686,3 +686,25 @@ table {
     font-size: 1em;
     margin-top: 1em;
 }
+
+.location-message {
+    text-align: center;
+    /* centers the text horizontally */
+    color: #1a3f5c;
+    /* matches your dark blue theme */
+    font-size: 1.2em;
+    /* slightly larger for visibility */
+    margin-top: 2em;
+    /* spacing from above content */
+}
+
+.location-container {
+    justify-content: center;
+}
+
+.location-title {
+    text-align: center;
+    color: #1a3f5c;
+    /* optional: match your theme */
+    margin-bottom: 1em;
+}

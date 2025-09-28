@@ -2,12 +2,6 @@
 session_start();
 require_once 'config/database.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header("Location: login.php");
-    exit();
-}
-
 // Get current session data
 $current_session = null;
 $budget_data = null;
@@ -306,11 +300,20 @@ if (isset($_POST['Update'])) {
 <body>
     <div class="budget-container">
         <?php include 'navigation.php'?>
+
             <table border="1">
                 <tr>
                     <section class="compare-section">
+                    <div class="location-container">
+                        <h1 class="location-title">Budget Comparison</h1>
+                    </div>
                         <div class="reports-container">
-                        <h1>Budget Analysis</h1>
+                            <div class="location-message">
+                            <?php if (!isset($_SESSION['username'])) {?>
+                                Please log in to access budget features.
+                                <?php } ?>
+                            </div>
+                        <?php if (isset($_SESSION['username'])) {?>
                         <div class="under">
                             <div class="budget-actions">
                                 <form id="loadInformation" action="budget.php" method="post">
@@ -575,5 +578,6 @@ if (isset($_POST['Update'])) {
         </div>
         <?php endif; ?>
     </div>
+<?php } ?>
 </body>
 </html>

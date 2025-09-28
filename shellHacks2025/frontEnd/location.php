@@ -12,11 +12,20 @@
 <body>
     <?php include 'navigation.php'?>
         <table border="1">
-            <tr>
+
                 <section class="compare-section">
+                    <div class="location-container">
+                        <h1 class="location-title">Location Comparison</h1>
+                    </div>
                     <div class="reports-container">
-                            <h1>Location Comparison</h1>
-                        <th>
+
+                            <div class="location-message">
+                                <?php if (!isset($_SESSION['username'])) {?>
+                                Please log in to access location features.
+                                </div>
+                                <tr>
+                                    <th>
+                            <?php }if (isset($_SESSION['username'])) {?>
                             <form name="currentLocationForm" id="currentLocationForm" method="POST" action="">
                                 <div class="location-report">
                                     <h3>Current Location</h3>
@@ -97,5 +106,6 @@
                 </section>
             </tr>
         </table>
+        <?php } ?>
 </body>
 </html>

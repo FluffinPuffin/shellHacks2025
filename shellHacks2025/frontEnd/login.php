@@ -33,13 +33,13 @@
 <body>
 
     <?php include 'navigation.php'?>
-    <h1> Login </h1>
-    
+
     <?php if (isset($error)): ?>
         <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
-    
+
     <div class = "loginpage">
+        <h1> Login </h1>
         <form id="loginpage" action="login.php" method="post">
             <div class="UsernamePassword">
                 <div>
@@ -51,7 +51,7 @@
                     <input type="password" id="password" name="password" required>
                 </div>
             </div>
-                <input type="submit" value="submit" name="Submit">
+                <input type="submit" value="Submit" name="Submit">
         </form>
         <div class="createAccount">
             <p> Don't have an account? </p>

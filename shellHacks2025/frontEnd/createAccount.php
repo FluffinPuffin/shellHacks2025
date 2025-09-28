@@ -1,46 +1,65 @@
 <?php
-    session_start();
-    // is ssubmitted and not empty
-    if (isset($_POST['submit']) && !empty($_POST['username']) && !empty($_POST['email']) && !empty($_POST['password'])) {
+session_start();
 
-        // create session for login and json fro data
-        $_SESSION['username'] = $_POST['username'];
+// check if form submitted
+if (isset($_POST['submit'])) {
+    $username = trim($_POST['username'] ?? '');
+    $email    = trim($_POST['email'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+
+    if ($username !== '' && $email !== '' && $password !== '') {
+        // create session for login
+        $_SESSION['username'] = $username;
+
+        // you could save JSON if you want, right now unused
         $jsonData = json_encode($_POST);
 
         header("Location: initialQuestions.php");
         exit();
-    } else if (isset($_POST['submit'])) {
-
+    } else {
+        $error = "All fields are required.";
     }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-    <title> Create Account </title>
+    <meta charset="UTF-8">
+    <title>Create Account</title>
     <link rel="stylesheet" href="./css/style.css">
 </head>
 
 <body>
-    <?php include 'navigation.php'?>
-    <h1>Create Account</h1>
-    <form id="createAccount" action="createAccount.php" method="POST">
-        <label for="username"> Username: </label>
-        <input type="text" id="username" name="username" required>
+    <?php include 'navigation.php'; ?>
 
-        <label for="email">Email:</label>
-        <input type="email" name="email" id = 'email'>
+    <div class="container">
+        <h1>Create Account</h1>
 
-        <label for="password">Password:</label>
-        <input type="password" name="password" id = 'password'>
+        <?php if (!empty($error)): ?>
+            <div class="message error"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
 
-        <input type="submit" value="Create Account" name="submit">
-    </form>
-    <div class="createAccount">
-        <p> Login </p>
-        <a href="login.php"> Create Account </a>
+        <form id="createAccount" action="createAccount.php" method="POST" class="form-card">
+            <label for="username"> Username: </label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="email"> Email: </label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password"> Password: </label>
+            <input type="password" id="password" name="password" required>
+
+            <div class="budget-actions">
+                <input type="submit" value="Create Account" name="submit">
+            </div>
+        </form>
+
+        <div class="auth-switch">
+            <p>Already have an account?</p>
+            <a href="login.php" class="btn-link">Login</a>
+        </div>
     </div>
 </body>
 </html>

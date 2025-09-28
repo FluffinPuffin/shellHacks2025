@@ -4,10 +4,10 @@ session_start();
 require_once 'config/database.php';
 
 // Check if user is logged in
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header("Location: login.php");
-    exit();
-}
+// if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+//     header("Location: login.php");
+//     exit();
+// }
 
 // Get recent sessions from database
 $recent_sessions = $db->getRecentSessions(3);
@@ -61,7 +61,7 @@ if (isset($_POST['new'])) {
             <?php if (empty($recent_sessions)): ?>
                 <p>No budget analyses yet. </p>
                 <form id="newBudget" action="home.php" method="post">
-                    <input type="submit" id="new" name="new" value="Create your first budget analysis">
+                    <input type="submit" id="new" name="new" value="Create Your First Budget Analysis" class = "create-button">
                 </form>
             <?php else: ?>
                 <?php foreach ($recent_sessions as $session): ?>
@@ -84,11 +84,10 @@ if (isset($_POST['new'])) {
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
+            <?php } else { ?>
+                <p class="account-message"> Please login or create an account to start using the app. </p>
+            <?php }?>
         </div>
-
-        <?php } else {
-
-        }?>
     </div>
 </body>
 </html>

@@ -1,9 +1,73 @@
-/* Budget */
-
 /* Create Account */
 
+.container {
+    padding: 2em;
+    background-color: #f0f2f5;
+    /* light grey */
+    font-family: Arial, sans-serif;
+    max-width: 400px;
+    /* compact width */
+    margin: 2em auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading */
+.container h1 {
+    text-align: center;
+    color: #1a3f5c;
+    /* dark blue */
+    margin-bottom: 1em;
+}
+
+/* Form card spacing */
+.form-card label {
+    display: block;
+    margin-bottom: 0.3em;
+    color: #1a3f5c;
+}
+
+.form-card input[type="text"],
+.form-card input[type="email"],
+.form-card input[type="password"] {
+    width: 100%;
+    padding: 0.5em;
+    border: 1px solid #a1c4e9;
+    border-radius: 4px;
+    font-size: 1em;
+    margin-bottom: 1em;
+}
+
+/* Reuse your existing .budget-actions styles for submit button */
+.budget-actions input[type="submit"] {
+    width: 100%;
+}
+
+/* Error message */
+.message.error {
+    color: red;
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+/* Switch between login & create account */
+.auth-switch {
+    text-align: center;
+    margin-top: 1em;
+}
+
+.auth-switch a {
+    color: #1a3f5c;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+
 /* Home */
-/* Homepage general style (full width, full height) */
 .home-container {
     padding: 2em;
     background-color: #f0f2f5;
@@ -13,6 +77,90 @@
 
 /* Welcome message */
 .home-container h1 {
+    .createAccountPage {
+        padding: 2em;
+        background-color: #f0f2f5;
+        /* light grey background */
+        font-family: Arial, sans-serif;
+        max-width: 400px;
+        /* compact card */
+        margin: 2em auto;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Heading */
+    .createAccountPage h1 {
+        text-align: center;
+        color: #1a3f5c;
+        /* dark blue */
+        margin-bottom: 1em;
+    }
+
+    /* Form fields */
+    .createAccountPage form div {
+        margin-bottom: 1em;
+    }
+
+    .createAccountPage label {
+        display: block;
+        margin-bottom: 0.3em;
+        color: #1a3f5c;
+    }
+
+    .createAccountPage input[type="text"],
+    .createAccountPage input[type="email"],
+    .createAccountPage input[type="password"] {
+        width: 100%;
+        padding: 0.5em;
+        border: 1px solid #a1c4e9;
+        border-radius: 4px;
+        font-size: 1em;
+    }
+
+    /* Submit button */
+    .createAccountPage input[type="submit"] {
+        width: 100%;
+        background-color: #cfe2f3;
+        /* soft blue */
+        border: 1px solid #a1c4e9;
+        color: #1a3f5c;
+        padding: 0.5em 1em;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+        font-size: 1em;
+        border-radius: 4px;
+        margin-top: 0.5em;
+    }
+
+    .createAccountPage input[type="submit"]:hover {
+        background-color: #9fc5e8;
+        color: #fff;
+    }
+
+    /* Error messages */
+    .createAccountPage .error-message {
+        color: red;
+        text-align: center;
+        margin-bottom: 1em;
+    }
+
+    /* Switch to login link */
+    .createAccountPage .loginSwitch {
+        text-align: center;
+        margin-top: 1em;
+    }
+
+    .createAccountPage .loginSwitch a {
+        color: #1a3f5c;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .createAccountPage .loginSwitch a:hover {
+        text-decoration: underline;
+    }
+
     text-align: center;
     color: #1a3f5c;
     /* dark blue text */
@@ -34,11 +182,37 @@
     /* dark blue text */
 }
 
+.create-button {
+    background-color: #cfe2f3;
+    /* soft blue */
+    border: 1px solid #a1c4e9;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 1em;
+    border-radius: 4px;
+    margin: 0.5em;
+    color: #1a3f5c;
+    /* dark blue text */
+}
+
 .navigation form input[type="submit"]:hover {
     background-color: #9fc5e8;
     /* darker blue on hover */
     color: #fff;
 }
+
+.account-message {
+    text-align: center;
+    /* centers the text horizontally */
+    color: #1a3f5c;
+    /* matches your dark blue theme */
+    font-size: 1.2em;
+    /* slightly larger for visibility */
+    margin-top: 2em;
+    /* spacing from above content */
+}
+
 
 /* Recent budgets section */
 .recent-budgets {
@@ -67,6 +241,36 @@
     margin: 0.2em 0;
     color: #333;
 }
+
+.budget-actions input[type="submit"] {
+    width: 100%;
+    background-color: #cfe2f3;
+    /* soft blue */
+    border: 1px solid #a1c4e9;
+    color: #1a3f5c;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 1em;
+    border-radius: 4px;
+    margin-top: 0.5em;
+}
+
+.budget-actions :hover {
+    background-color: #9fc5e8;
+    color: #fff;
+}
+
+.under {
+    display: flex;
+    /* side-by-side buttons */
+    gap: 10px;
+    /* space below the h1 */
+    width: 100%;
+    /* full width under heading */
+    justify-content: center;
+}
+
 
 /* Navigation */
 .nav-links {
@@ -115,8 +319,164 @@
 }
 
 /* Location */
+.compare-section {
+    padding: 2em;
+    background-color: #f0f2f5;
+    font-family: Arial, sans-serif;
+}
+
+.reports-container {
+    display: flex;
+    gap: 2em;
+    /* space between current and destination */
+    justify-content: center;
+    /* centers the forms horizontally */
+    flex-wrap: wrap;
+    /* allows wrapping on smaller screens */
+    margin: 0 auto;
+    /* ensures container itself is centered if needed */
+}
+
+tr {
+    border: white solid 2px;
+}
+
+table {
+    margin: 2em auto;
+    /* centers table horizontally and adds vertical spacing */
+    border-collapse: collapse;
+    /* optional: cleaner borders */
+    width: auto;
+    /* shrink to fit content */
+}
+
+.location-report {
+    background-color: #e6edf5;
+    padding: 1em;
+    border-radius: 6px;
+    width: 300px;
+    /* or adjust as needed */
+}
+
+.location-report h3 {
+    text-align: center;
+    color: #1a3f5c;
+    margin-bottom: 1em;
+}
+
+.location-report .report-item {
+    margin-bottom: 0.8em;
+}
+
+.location-report input[type="text"],
+.location-report input[type="number"] {
+    width: 100%;
+    padding: 0.4em;
+    border: 1px solid #a1c4e9;
+    border-radius: 4px;
+}
+
+.location-report input[type="submit"] {
+    width: 100%;
+    background-color: #cfe2f3;
+    border: 1px solid #a1c4e9;
+    color: #1a3f5c;
+    padding: 0.5em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-radius: 4px;
+}
+
+.location-report input[type="submit"]:hover {
+    background-color: #9fc5e8;
+    color: #fff;
+}
+
 
 /* Login */
+.loginpage {
+    padding: 2em;
+    background-color: #f0f2f5;
+    /* light grey background */
+    font-family: Arial, sans-serif;
+    max-width: 400px;
+    /* optional: keep form compact */
+    margin: 2em auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Login page heading */
+.loginpage h1 {
+    text-align: center;
+    color: #1a3f5c;
+    /* dark blue */
+    margin-bottom: 1em;
+}
+
+/* Form fields */
+.loginpage .UsernamePassword div {
+    margin-bottom: 1em;
+}
+
+.loginpage label {
+    display: block;
+    margin-bottom: 0.3em;
+    color: #1a3f5c;
+}
+
+.loginpage input[type="text"],
+.loginpage input[type="password"] {
+    width: 100%;
+    padding: 0.5em;
+    border: 1px solid #a1c4e9;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+/* Submit button */
+.loginpage input[type="submit"] {
+    width: 100%;
+    background-color: #cfe2f3;
+    /* soft blue */
+    border: 1px solid #a1c4e9;
+    color: #1a3f5c;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 1em;
+    border-radius: 4px;
+    margin-top: 0.5em;
+}
+
+.loginpage input[type="submit"]:hover {
+    background-color: #9fc5e8;
+    color: #fff;
+}
+
+/* Error messages */
+.loginpage .error-message {
+    color: red;
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+/* Create account link */
+.loginpage .createAccount {
+    text-align: center;
+    margin-top: 1em;
+}
+
+.loginpage .createAccount a {
+    color: #1a3f5c;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.loginpage .createAccount a:hover {
+    text-decoration: underline;
+}
+
 
 /* Logout */
 

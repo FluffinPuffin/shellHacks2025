@@ -27,10 +27,10 @@ $all_sessions = $db->getRecentSessions(10);
 function generateCostBreakdown($location, $household_size) {
     // Create the prompt as specified
     $prompt = "Give me a cost break down average cost of the monthly payments for {$household_size} people paying for the average phone bill (no MVNO), cost of owning a car, health insurance in {$location} based on recent sources only a single number per category in the format of the text below with no other text or notes \n 'Phone: number,Car: number,Health Insurance: number'";
-    
+
     // For now, we'll use realistic estimates based on location and household size
     // In a real implementation, this would call an AI service with the prompt
-    
+
     // Location-based multipliers
     $location_multiplier = 1.0;
     if (stripos($location, 'new york') !== false || stripos($location, 'san francisco') !== false || stripos($location, 'los angeles') !== false) {
@@ -40,12 +40,12 @@ function generateCostBreakdown($location, $household_size) {
     } elseif (stripos($location, 'texas') !== false || stripos($location, 'florida') !== false || stripos($location, 'arizona') !== false) {
         $location_multiplier = 0.8;
     }
-    
+
     // Generate realistic estimates
     $phone_cost = round(80 * $household_size * $location_multiplier, 2); // Average phone bill per person
     $car_cost = round(600 * $location_multiplier, 2); // Monthly car ownership cost
     $health_insurance_cost = round(400 * $household_size * $location_multiplier, 2); // Health insurance per person
-    
+
     return [
         'phone' => $phone_cost,
         'car' => $car_cost,
@@ -57,29 +57,29 @@ function generateCostBreakdown($location, $household_size) {
 function generateAdvancedBudgetData($budget_data) {
     // Calculate current totals
     $current_rent = $budget_data['rent'] ?? 0;
-    $current_utilities = ($budget_data['utilities']['water'] ?? 0) + 
-                        ($budget_data['utilities']['phone'] ?? 0) + 
-                        ($budget_data['utilities']['electricity'] ?? 0) + 
+    $current_utilities = ($budget_data['utilities']['water'] ?? 0) +
+                        ($budget_data['utilities']['phone'] ?? 0) +
+                        ($budget_data['utilities']['electricity'] ?? 0) +
                         ($budget_data['utilities']['other'] ?? 0);
     $current_groceries = $budget_data['groceries'] ?? 0;
     $current_debt_payment = $budget_data['debt']['monthly_payment'] ?? 0;
     $current_savings = $budget_data['savings'] ?? 0;
-    
+
     $total_expenses = $current_rent + $current_utilities + $current_groceries + $current_debt_payment;
-    
+
     // Generate advanced analysis based on location and household size
     $location = $budget_data['location'] ?? 'Unknown';
     $household_size = $budget_data['household_size'] ?? 1;
     $age = $budget_data['age'] ?? 25;
-    
+
     // Generate cost breakdown using the specified prompt format
     $cost_breakdown = generateCostBreakdown($location, $household_size);
-    
+
     // Parse the cost breakdown response
     $phone_cost = $cost_breakdown['phone'] ?? 0;
     $car_cost = $cost_breakdown['car'] ?? 0;
     $health_insurance_cost = $cost_breakdown['health_insurance'] ?? 0;
-    
+
     // Location-based cost adjustments for other expenses
     $location_multiplier = 1.0;
     if (stripos($location, 'new york') !== false || stripos($location, 'san francisco') !== false || stripos($location, 'los angeles') !== false) {
@@ -89,13 +89,13 @@ function generateAdvancedBudgetData($budget_data) {
     } elseif (stripos($location, 'texas') !== false || stripos($location, 'florida') !== false || stripos($location, 'arizona') !== false) {
         $location_multiplier = 0.9;
     }
-    
+
     // Generate realistic baseline recommendations if current values are zero
     $baseline_rent = $current_rent > 0 ? $current_rent : (800 * $location_multiplier * $household_size);
     $baseline_utilities = $current_utilities > 0 ? $current_utilities : (200 * $household_size);
     $baseline_groceries = $current_groceries > 0 ? $current_groceries : (400 * $household_size);
     $baseline_savings = $current_savings > 0 ? $current_savings : (300 * $household_size);
-    
+
     // Calculate realistic optimized recommendations using generated costs
     $optimized_rent = $current_rent > 0 ? round($current_rent * 0.9, 2) : round($baseline_rent * 0.9, 2);
     $optimized_utilities = [
@@ -106,7 +106,7 @@ function generateAdvancedBudgetData($budget_data) {
     ];
     $optimized_groceries = $current_groceries > 0 ? round($current_groceries * 0.9, 2) : round($baseline_groceries * 0.9, 2);
     $recommended_savings = $total_expenses > 0 ? round($total_expenses * 0.2, 2) : round($baseline_savings, 2);
-    
+
     // Generate optimized recommendations
     $advanced_analysis = [
         'current_analysis' => [
@@ -153,7 +153,7 @@ function generateAdvancedBudgetData($budget_data) {
         'generated_at' => date('Y-m-d H:i:s'),
         'analysis_version' => '1.0'
     ];
-    
+
     return $advanced_analysis;
 }
 
@@ -199,10 +199,10 @@ if (isset($_POST['Generate'])) {
             ],
             'monthly_payments' => $budget_data['monthly_payments'] ?? []
         ];
-        
+
         // Generate advanced budget analysis data
         $advanced_data = generateAdvancedBudgetData($current_data);
-        
+
         // Update budget_data with optimized recommendations for the form fields
         $optimized_budget_data = [
             'name' => $current_data['name'],
@@ -225,7 +225,7 @@ if (isset($_POST['Generate'])) {
             'debt' => $current_data['debt'], // Keep current debt info
             'monthly_payments' => $current_data['monthly_payments']
         ];
-        
+
         // Update the session with both optimized budget data and advanced analysis
         $update_data = [
             'user_data' => [
@@ -234,7 +234,7 @@ if (isset($_POST['Generate'])) {
                 'advanced_analysis' => $advanced_data
             ]
         ];
-        
+
         if ($db->updateSession($_SESSION['current_session_id'], $update_data)) {
             $budget_data = $optimized_budget_data; // Update the current budget_data for display
             $message = "Advanced budget analysis generated and applied to form fields!";
@@ -275,14 +275,14 @@ if (isset($_POST['Update'])) {
             ],
             'monthly_payments' => $budget_data['monthly_payments'] ?? []
         ];
-        
+
         $update_data = [
             'user_data' => [
                 'household_data' => $updated_data,
                 'app_requirements' => $current_session['user_data']['app_requirements'] ?? null
             ]
         ];
-        
+
         if ($db->updateSession($_SESSION['current_session_id'], $update_data)) {
             $budget_data = $updated_data;
             $message = "Budget data updated successfully!";
@@ -306,26 +306,24 @@ if (isset($_POST['Update'])) {
 <body>
     <div class="budget-container">
         <?php include 'navigation.php'?>
-        <h1>Budget Analysis</h1>
-        
-        <?php if ($message): ?>
-            <div class="message"><?php echo htmlspecialchars($message); ?></div>
-        <?php endif; ?>
-        
-        <div class="budget-actions">
-            <form id="loadInformation" action="budget.php" method="post">
-                <input type="submit" value="Load Latest Budget" name="Load">
-            </form>
-        </div>
-
-        <form name="budgetForm" id="budgetForm" method="POST" action="">
-            <div class="budget-actions">
-                <input type="submit" value="Generate Analysis" name="Generate">
-            </div>
             <table border="1">
                 <tr>
                     <section class="compare-section">
                         <div class="reports-container">
+                        <h1>Budget Analysis</h1>
+                        <div class="under">
+                            <div class="budget-actions">
+                                <form id="loadInformation" action="budget.php" method="post">
+                                    <input type="submit" value="Load Latest Budget" name="Load">
+                                </form>
+                            </div>
+                            <div class="budget-actions">
+                                <input type="submit" value="Generate Analysis" name="Generate">
+                            </div>
+                        </div>
+                                <?php if ($message): ?>
+                            <div class="message"><?php echo htmlspecialchars($message); ?></div>
+                        <?php endif; ?>
                             <th>
                                 <div class="location-report">
                                     <h3>Personal Information</h3>
@@ -355,7 +353,7 @@ if (isset($_POST['Update'])) {
                                     </div>
                                 </div>
                             </th>
-                            
+
                             <th>
                                 <div class="location-report">
                                     <h3>Financial Information</h3>
@@ -399,7 +397,7 @@ if (isset($_POST['Update'])) {
                                     </div>
                                 </div>
                             </th>
-                            
+
                             <th>
                                 <div class="location-report">
                                     <h3>Debt Information</h3>
@@ -421,19 +419,19 @@ if (isset($_POST['Update'])) {
                                             <input type="number" name="interest_rate" value="<?php echo htmlspecialchars($budget_data['debt']['interest_rate'] ?? ''); ?>" step="0.01">
                                         </div>
                                     </div>
-                                    
+
                                     <div class="report-item total">
                                         <strong>Total Monthly Expenses:</strong>
-                                        <span><strong>$<?php 
+                                        <span><strong>$<?php
                                             if ($budget_data) {
-                                                $total = ($budget_data['rent'] ?? 0) + 
-                                                        (($budget_data['utilities']['water'] ?? 0) + 
-                                                         ($budget_data['utilities']['phone'] ?? 0) + 
-                                                         ($budget_data['utilities']['electricity'] ?? 0) + 
-                                                         ($budget_data['utilities']['other'] ?? 0)) + 
-                                                        ($budget_data['groceries'] ?? 0) + 
-                                                        ($budget_data['car_cost'] ?? 0) + 
-                                                        ($budget_data['health_insurance'] ?? 0) + 
+                                                $total = ($budget_data['rent'] ?? 0) +
+                                                        (($budget_data['utilities']['water'] ?? 0) +
+                                                         ($budget_data['utilities']['phone'] ?? 0) +
+                                                         ($budget_data['utilities']['electricity'] ?? 0) +
+                                                         ($budget_data['utilities']['other'] ?? 0)) +
+                                                        ($budget_data['groceries'] ?? 0) +
+                                                        ($budget_data['car_cost'] ?? 0) +
+                                                        ($budget_data['health_insurance'] ?? 0) +
                                                         ($budget_data['debt']['monthly_payment'] ?? 0);
                                                 echo number_format($total, 2);
                                             } else {
@@ -441,7 +439,7 @@ if (isset($_POST['Update'])) {
                                             }
                                         ?></strong></span>
                                     </div>
-                                    
+
                                     <input type="submit" name="Update" value="Update Budget">
                                 </div>
                             </th>
@@ -450,7 +448,7 @@ if (isset($_POST['Update'])) {
                 </tr>
             </table>
         </form>
-        
+
         <!-- Advanced Analysis Section -->
         <?php if (isset($current_session['user_data']['advanced_analysis'])): ?>
             <?php $analysis = $current_session['user_data']['advanced_analysis']; ?>
@@ -475,7 +473,7 @@ if (isset($_POST['Update'])) {
                             <strong>Debt Percentage:</strong> <?php echo $analysis['current_analysis']['expense_percentages']['debt_percent']; ?>%
                         </div>
                     </div>
-                    
+
                     <div class="analysis-card">
                         <h3>Optimized Recommendations</h3>
                         <div class="analysis-item">
@@ -503,7 +501,7 @@ if (isset($_POST['Update'])) {
                             <strong>Health Insurance:</strong> $<?php echo number_format($analysis['recommendations']['health_insurance_cost'], 2); ?>
                         </div>
                     </div>
-                    
+
                     <div class="analysis-card">
                         <h3>Financial Insights</h3>
                         <div class="analysis-item">
@@ -522,7 +520,7 @@ if (isset($_POST['Update'])) {
                             <strong>Cost per Person:</strong> $<?php echo number_format($analysis['insights']['household_efficiency'], 2); ?>
                         </div>
                     </div>
-                    
+
                     <div class="analysis-card">
                         <h3>Savings Potential</h3>
                         <div class="analysis-item">
@@ -547,7 +545,7 @@ if (isset($_POST['Update'])) {
                 </div>
             </div>
         <?php endif; ?>
-        
+
         <!-- Recent Sessions -->
         <?php if (!empty($all_sessions)): ?>
         <div class="recent-sessions">
@@ -560,13 +558,13 @@ if (isset($_POST['Update'])) {
                             <h3><?php echo htmlspecialchars($data['name'] ?? 'Unknown User'); ?></h3>
                             <p><strong>Location:</strong> <?php echo htmlspecialchars($data['location'] ?? 'N/A'); ?></p>
                             <p><strong>Created:</strong> <?php echo date('M j, Y g:i A', strtotime($session['created_at'])); ?></p>
-                            <p><strong>Total Monthly:</strong> $<?php 
-                                $total = ($data['rent'] ?? 0) + 
-                                        (($data['utilities']['water'] ?? 0) + 
-                                         ($data['utilities']['phone'] ?? 0) + 
-                                         ($data['utilities']['electricity'] ?? 0) + 
-                                         ($data['utilities']['other'] ?? 0)) + 
-                                        ($data['groceries'] ?? 0) + 
+                            <p><strong>Total Monthly:</strong> $<?php
+                                $total = ($data['rent'] ?? 0) +
+                                        (($data['utilities']['water'] ?? 0) +
+                                         ($data['utilities']['phone'] ?? 0) +
+                                         ($data['utilities']['electricity'] ?? 0) +
+                                         ($data['utilities']['other'] ?? 0)) +
+                                        ($data['groceries'] ?? 0) +
                                         ($data['debt']['monthly_payment'] ?? 0);
                                 echo number_format($total, 2);
                             ?></p>

@@ -11,13 +11,11 @@
 
 <body>
     <?php include 'navigation.php'?>
-    <p>LOCATION<p>
         <table border="1">
             <tr>
                 <section class="compare-section">
                     <div class="reports-container">
-
-
+                            <h1>Location Comparison</h1>
                         <th>
                             <form name="currentLocationForm" id="currentLocationForm" method="POST" action="">
                                 <div class="location-report">
@@ -56,7 +54,7 @@
                                 </div>
                             </form>
                         </th>
-                        <th>  
+                        <th>
                             <form name="destinationForm" id="destinationForm" method="POST" action="">
                                 <div class="location-report">
                                 <h3>Destination</h3>
@@ -94,7 +92,7 @@
                             </div>
                             </form>
                         </th>
-                        
+
                     </div>
                 </section>
             </tr>

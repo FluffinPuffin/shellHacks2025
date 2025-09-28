@@ -159,15 +159,122 @@ function generateAdvancedBudgetData($budget_data) {
 
 // Handle form submissions
 if (isset($_POST['Load'])) {
-    // Load the most recent session data
-    if (!empty($all_sessions)) {
-        $latest_session = $all_sessions[0];
-        if (isset($latest_session['user_data']['household_data'])) {
-            $budget_data = $latest_session['user_data']['household_data'];
-            $message = "Latest budget data loaded!";
+    // Load selected session data
+    if (isset($_POST['load_session_id']) && !empty($_POST['load_session_id'])) {
+        $selected_session_id = $_POST['load_session_id'];
+        $selected_session = $db->getSession($selected_session_id);
+        
+        if ($selected_session && isset($selected_session['user_data']['household_data'])) {
+            $budget_data = $selected_session['user_data']['household_data'];
+            $current_session = $selected_session; // Update current session
+            $_SESSION['current_session_id'] = $selected_session_id; // Update session ID
+            $message = "Budget data loaded successfully!";
+        } else {
+            $message = "Selected budget data not found.";
         }
     } else {
-        $message = "No budget data found to load.";
+        $message = "Please select a budget to load.";
+    }
+}
+
+if (isset($_POST['Save'])) {
+    // Save current budget data by replacing the oldest session
+    // Get current form data
+    $current_budget_data = [
+        'name' => $_POST['name'] ?? $budget_data['name'] ?? '',
+        'age' => (int)($_POST['age'] ?? $budget_data['age'] ?? 0),
+        'location' => $_POST['location'] ?? $budget_data['location'] ?? '',
+        'household_size' => (int)($_POST['household_size'] ?? $budget_data['household_size'] ?? 0),
+        'bedrooms' => (int)($_POST['bedrooms'] ?? $budget_data['bedrooms'] ?? 0),
+        'bathrooms' => (float)($_POST['bathrooms'] ?? $budget_data['bathrooms'] ?? 0),
+        'rent' => (float)($_POST['rent'] ?? $budget_data['rent'] ?? 0),
+        'utilities' => [
+            'water' => (float)($_POST['water'] ?? $budget_data['utilities']['water'] ?? 0),
+            'phone' => (float)($_POST['phone'] ?? $budget_data['utilities']['phone'] ?? 0),
+            'electricity' => (float)($_POST['electricity'] ?? $budget_data['utilities']['electricity'] ?? 0),
+            'other' => (float)($_POST['other_utilities'] ?? $budget_data['utilities']['other'] ?? 0)
+        ],
+        'groceries' => (float)($_POST['groceries'] ?? $budget_data['groceries'] ?? 0),
+        'savings' => (float)($_POST['savings'] ?? $budget_data['savings'] ?? 0),
+        'car_cost' => (float)($_POST['car_cost'] ?? $budget_data['car_cost'] ?? 0),
+        'health_insurance' => (float)($_POST['health_insurance'] ?? $budget_data['health_insurance'] ?? 0),
+        'debt' => [
+            'total_debt' => (float)($_POST['total_debt'] ?? $budget_data['debt']['total_debt'] ?? 0),
+            'monthly_payment' => (float)($_POST['monthly_debt'] ?? $budget_data['debt']['monthly_payment'] ?? 0),
+            'debt_type' => $_POST['debt_type'] ?? $budget_data['debt']['debt_type'] ?? '',
+            'interest_rate' => (float)($_POST['interest_rate'] ?? $budget_data['debt']['interest_rate'] ?? 0)
+        ],
+        'monthly_payments' => $budget_data['monthly_payments'] ?? []
+    ];
+    
+    // Create new session data
+    $new_session_data = [
+        'user_data' => [
+            'household_data' => $current_budget_data,
+            'app_requirements' => $current_session['user_data']['app_requirements'] ?? null,
+            'advanced_analysis' => $current_session['user_data']['advanced_analysis'] ?? null
+        ]
+    ];
+    
+    // Generate new session ID
+    $new_session_id = uniqid('budget_', true);
+    
+    // Create the new session (this will automatically clean up old sessions)
+    if ($db->createSession($new_session_id, $new_session_data)) {
+        $budget_data = $current_budget_data; // Update the current budget_data for display
+        $current_session = $db->getSession($new_session_id);
+        $_SESSION['current_session_id'] = $new_session_id;
+        $message = "Budget data saved successfully! (Replaced oldest session)";
+    } else {
+        $message = "Failed to save budget data.";
+    }
+}
+
+if (isset($_POST['NewBudget'])) {
+    // Create a new budget session
+    $new_session_id = uniqid('budget_', true);
+    $new_budget_data = [
+        'name' => '',
+        'age' => 0,
+        'location' => '',
+        'household_size' => 1,
+        'bedrooms' => 0,
+        'bathrooms' => 0,
+        'rent' => 0,
+        'utilities' => [
+            'water' => 0,
+            'phone' => 0,
+            'electricity' => 0,
+            'other' => 0
+        ],
+        'groceries' => 0,
+        'savings' => 0,
+        'car_cost' => 0,
+        'health_insurance' => 0,
+        'debt' => [
+            'total_debt' => 0,
+            'monthly_payment' => 0,
+            'debt_type' => '',
+            'interest_rate' => 0
+        ],
+        'monthly_payments' => []
+    ];
+    
+    $new_session_data = [
+        'user_data' => [
+            'household_data' => $new_budget_data,
+            'app_requirements' => null,
+            'advanced_analysis' => null
+        ]
+    ];
+    
+    if ($db->createSession($new_session_id, $new_session_data)) {
+        $budget_data = $new_budget_data;
+        $current_session = $db->getSession($new_session_id);
+        $_SESSION['current_session_id'] = $new_session_id;
+        $message = "New budget created successfully!";
+    } else {
+        $message = "Failed to create new budget.";
     }
 }
 
@@ -314,7 +421,27 @@ if (isset($_POST['Update'])) {
         
         <div class="budget-actions">
             <form id="loadInformation" action="budget.php" method="post">
-                <input type="submit" value="Load Latest Budget" name="Load">
+                <select name="load_session_id">
+                    <option value="">Select a saved budget to load...</option>
+                    <?php foreach ($all_sessions as $session): ?>
+                        <?php if (isset($session['user_data']['household_data'])): ?>
+                            <?php $data = $session['user_data']['household_data']; ?>
+                            <option value="<?php echo $session['session_id']; ?>">
+                                <?php echo htmlspecialchars($data['name'] ?? 'Unknown User'); ?> - 
+                                <?php echo date('M j, Y g:i A', strtotime($session['created_at'])); ?>
+                            </option>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </select>
+                <input type="submit" value="Load Selected Budget" name="Load">
+            </form>
+            
+            <form id="saveInformation" action="budget.php" method="post">
+                <input type="submit" value="Save Current Budget" name="Save">
+            </form>
+            
+            <form id="newBudget" action="budget.php" method="post">
+                <input type="submit" value="Create New Budget" name="NewBudget">
             </form>
         </div>
 

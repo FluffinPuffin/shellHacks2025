@@ -138,7 +138,6 @@ class Database {
             
             return $result;
         } catch(PDOException $e) {
-            error_log("Database update error: " . $e->getMessage());
             return false;
         }
     }

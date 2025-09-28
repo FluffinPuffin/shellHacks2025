@@ -140,16 +140,9 @@ if (isset($_POST['generate_comparison'])) {
         if ($success) {
             $message = "Location comparison generated successfully! Redirecting to budget page...";
             
-            // Debug: Show what was saved
-            if (isset($_GET['debug'])) {
-                $message .= " | Debug: Session ID: " . $_SESSION['current_session_id'];
-                $message .= " | Current: " . $current_location_data['location'];
-                $message .= " | Destination: " . $destination_data['location'];
-            } else {
-                // Redirect to budget page after successful save
-                header("refresh:2;url=budget.php");
-                exit();
-            }
+            // Redirect to budget page after successful save
+            header("refresh:2;url=budget.php");
+            exit();
         } else {
             $message = "Error: Failed to save location comparison data.";
         }
@@ -327,7 +320,6 @@ function generateComparison() {
     
     // Validate that destination has some data
     if (!destinationData.location && !destinationData.rent && !destinationData.utilities && !destinationData.groceries) {
-        alert('Please enter destination information before generating comparison.');
         return;
     }
     

@@ -16,26 +16,7 @@ $message = '';
 
 // Check if data was just loaded
 if (isset($_GET['loaded'])) {
-    $message = "Budget data loaded successfully! The form fields should now show the loaded data.";
-    
-    // Debug: Show what session we're trying to load
-    if (isset($_SESSION['current_session_id'])) {
-        $message .= " | Loading session: " . $_SESSION['current_session_id'];
-        $current_session = $db->getSession($_SESSION['current_session_id']);
-        if ($current_session) {
-            $message .= " | Session found in database";
-            if (isset($current_session['user_data']['household_data'])) {
-                $budget_data = $current_session['user_data']['household_data'];
-                $message .= " | Budget data loaded: " . ($budget_data['name'] ?? 'no name') . ", Rent: $" . ($budget_data['rent'] ?? '0');
-            } else {
-                $message .= " | No household data in session";
-            }
-        } else {
-            $message .= " | Session NOT found in database";
-        }
-    } else {
-        $message .= " | No current session ID in session";
-    }
+    $message = "Budget data loaded successfully!";
 }
 
 if (isset($_SESSION['current_session_id'])) {
@@ -59,20 +40,13 @@ function generateCostBreakdown($location, $household_size) {
     // Try to call the AI service first
     $ai_response = callGeminiAPI($prompt);
     
-    // Debug: Log AI response
-    error_log("AI Response: " . $ai_response);
     
     if ($ai_response && !strpos($ai_response, 'Error')) {
         // Parse the AI response
         $costs = parseAIResponse($ai_response);
         if ($costs) {
-            error_log("AI Costs parsed successfully: " . json_encode($costs));
             return $costs;
-        } else {
-            error_log("Failed to parse AI response: " . $ai_response);
         }
-    } else {
-        error_log("AI call failed or returned error: " . $ai_response);
     }
     
     // Fallback to realistic estimates if AI fails
@@ -196,7 +170,6 @@ function generateRentEstimate($location, $household_size, $bedrooms) {
     $bedroom_factor = 1 + (($bedrooms - 1) * 0.4);
     
     $result = round($base_rent * $multiplier * $size_factor * $bedroom_factor);
-    error_log("Rent Generation - Location: '$location', Multiplier: $multiplier, Size Factor: $size_factor, Bedroom Factor: $bedroom_factor, Result: $result");
     return $result;
 }
 
@@ -285,7 +258,6 @@ function generateCarCostEstimate($location, $age) {
     
     $age_factor = $age > 25 ? 1.1 : 0.9; // Slightly higher for older drivers
     $result = round($base_car_cost * $multiplier * $age_factor);
-    error_log("Car Cost Generation - Location: '$location', Multiplier: $multiplier, Age Factor: $age_factor, Result: $result");
     return $result;
 }
 
@@ -324,39 +296,14 @@ function generateHealthInsuranceEstimate($age, $location) {
     }
     
     $result = round($base_insurance * $age_factor * $multiplier);
-    error_log("Health Insurance Generation - Location: '$location', Age: $age, Age Factor: $age_factor, Multiplier: $multiplier, Result: $result");
     return $result;
 }
 
 
-// Debug: Check if any POST data is being received
-if ($_POST) {
-    error_log("POST data received: " . print_r($_POST, true));
-    $message = "POST data received: " . implode(', ', array_keys($_POST));
-    
-    // Check specifically for Generate button
-    if (isset($_POST['Generate'])) {
-        $message .= " | Generate button detected!";
-    } else {
-        $message .= " | Generate button NOT detected";
-    }
-    
-    // Check if form was submitted
-    if (isset($_POST['form_submitted'])) {
-        $message .= " | Form submitted successfully";
-    } else {
-        $message .= " | Form NOT submitted";
-    }
-}
 
-// Test form submission
-if (isset($_POST['TestForm'])) {
-    $message = "Test form button works! Form submission is functioning.";
-}
 
 // Test Save button
 if (isset($_POST['Save'])) {
-    $message = "Save button works! Form submission is functioning.";
 }
 
 // Handle form submissions
@@ -372,23 +319,13 @@ if (isset($_POST['Load'])) {
             $current_session = $selected_session; // Update current session
             $_SESSION['current_session_id'] = $selected_session_id; // Update session ID
             
-            // Debug: Show what data was loaded
             $message = "Budget data loaded successfully!";
-            $message .= " | Loaded name: " . ($budget_data['name'] ?? 'empty');
-            $message .= " | Loaded rent: " . ($budget_data['rent'] ?? 'empty');
-            $message .= " | Loaded groceries: " . ($budget_data['groceries'] ?? 'empty');
-            $message .= " | Loaded location: " . ($budget_data['location'] ?? 'empty');
             
             // Redirect to refresh the page and show the loaded data
             header("Location: budget.php?loaded=1");
             exit();
         } else {
             $message = "Selected budget data not found.";
-            if (!$selected_session) {
-                $message .= " | Session not found in database.";
-            } elseif (!isset($selected_session['user_data']['household_data'])) {
-                $message .= " | Household data not found in session.";
-            }
         }
     } else {
         $message = "Please select a budget to load.";
@@ -396,17 +333,7 @@ if (isset($_POST['Load'])) {
 }
 
 if (isset($_POST['Save'])) {
-    // Debug: Show that Save button was clicked
-    $message = "Save button clicked! Processing...";
-    
     // Save current budget data by updating the current session
-    // Get current form data
-    $message .= " | Processing form data...";
-    
-    // Debug: Show what data is being saved
-    $message .= " | Saving name: " . ($_POST['name'] ?? 'empty');
-    $message .= " | Saving rent: " . ($_POST['rent'] ?? 'empty');
-    $message .= " | Saving groceries: " . ($_POST['groceries'] ?? 'empty');
     
     $current_budget_data = [
         'name' => $_POST['name'] ?? $budget_data['name'] ?? '',
@@ -573,19 +500,10 @@ if (isset($_POST['NewSession'])) {
 }
 
 if (isset($_POST['Generate'])) {
-    // Debug: Show that Generate button was clicked
-    $message = "Generate button clicked! Processing...";
-    
-    // Debug: Show all POST data
-    $message .= " | POST data: " . implode(', ', array_keys($_POST));
-    
-    // Debug: Show current session status
-    $message .= " | Current session: " . (isset($_SESSION['current_session_id']) ? $_SESSION['current_session_id'] : 'NO SESSION');
     
     // Generate new budget analysis with advanced data
     // If no current session, create one first
     if (!$current_session) {
-        $message .= " | No current session, creating new one...";
         $new_session_id = 'session_' . uniqid();
         $new_session_data = [
             'user_data' => [
@@ -598,12 +516,7 @@ if (isset($_POST['Generate'])) {
         if ($db->createSession($new_session_id, $new_session_data)) {
             $_SESSION['current_session_id'] = $new_session_id;
             $current_session = $db->getSession($new_session_id);
-            $message .= " | New session created: " . $new_session_id;
-        } else {
-            $message .= " | Failed to create new session";
         }
-    } else {
-        $message .= " | Using existing session: " . $_SESSION['current_session_id'];
     }
     
     if ($current_session) {
@@ -618,21 +531,8 @@ if (isset($_POST['Generate'])) {
             }
         }
         
-        // Debug: Show what values we received
-        $debug_values = [];
-        foreach ($required_profile_fields as $field) {
-            $debug_values[$field] = $_POST[$field] ?? 'NOT_SET';
-        }
-        $message .= " | Debug values: " . print_r($debug_values, true);
-        
-        if (!empty($missing_fields)) {
-            $message = "Some fields missing, but proceeding with generation anyway. Missing: " . implode(', ', $missing_fields);
-        } else {
-            $message = "All required fields filled! Proceeding with generation...";
-        }
         
         // Proceed with generation regardless of missing fields
-        $message .= " | Generating budget data...";
             // Use current form data or existing budget data, with smart defaults for missing financial data
         $current_data = [
                 'name' => trim($_POST['name'] ?? ''),
@@ -701,38 +601,7 @@ if (isset($_POST['Generate'])) {
         
         if ($db->updateSession($_SESSION['current_session_id'], $update_data)) {
             $budget_data = $optimized_budget_data; // Update the current budget_data for display
-            $message .= " | Session updated successfully!";
-            
-            // Debug: Show what data was generated
-            $message .= " | Generated rent: $" . $optimized_budget_data['rent'];
-            $message .= " | Generated groceries: $" . $optimized_budget_data['groceries'];
-            $message .= " | Generated car cost: $" . $optimized_budget_data['car_cost'];
-            $message .= " | Generated phone: $" . $optimized_budget_data['utilities']['phone'];
-            $message .= " | Generated water: $" . $optimized_budget_data['utilities']['water'];
-            
-            // All financial fields are now generated fresh every time
-            
-            $message = "Fresh budget analysis generated successfully! ";
-            $message .= "Generated fresh estimates for ALL financial fields: rent, utilities, groceries, savings, car costs, and health insurance. ";
-            $message .= "All estimates are based on your current profile information (location, household size, age, bedrooms, bathrooms).";
-            
-            // Check if AI was used
-            $ai_used = false;
-            if (isset($cost_breakdown['phone']) && $cost_breakdown['phone'] > 0) {
-                $ai_used = true;
-            }
-            
-            if ($ai_used) {
-                $message .= " AI-powered cost estimates were generated based on your location and household size. ";
-        } else {
-                $message .= " Cost estimates were generated using location-based calculations. ";
-            }
-            
-            $message .= "You can now review and adjust the values as needed.";
-            
-            // Debug: Show what should be displayed in form fields
-            $message .= " | Form should show rent: $" . ($budget_data['rent'] ?? 'NULL');
-            $message .= " | Form should show groceries: $" . ($budget_data['groceries'] ?? 'NULL');
+            $message = "Budget analysis generated successfully!";
             
             // Data has been generated and saved - form fields will show the updated values
         } else {
@@ -807,20 +676,13 @@ if (isset($_POST['Update'])) {
     <script>
         // Minimal JavaScript that doesn't interfere with form submission
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Budget page loaded successfully');
-            
             // Add simple loading states without preventing form submission
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
                 form.addEventListener('submit', function(e) {
-                    console.log('Form submitting:', form.id || form.name);
-                    console.log('Form action:', form.action);
-                    console.log('Form method:', form.method);
-                    
                     // Don't prevent default - let the form submit normally
                     const submitBtn = form.querySelector('button[type="submit"]');
                     if (submitBtn) {
-                        console.log('Submit button found:', submitBtn.name || submitBtn.textContent);
                         // Just add a simple loading state
                         const originalText = submitBtn.innerHTML;
                         submitBtn.innerHTML = 'Processing...';
@@ -847,37 +709,7 @@ if (isset($_POST['Update'])) {
             <div class="message"><?php echo htmlspecialchars($message); ?></div>
         <?php endif; ?>
         
-        <!-- Debug: Show current budget_data values -->
-        <div style="background-color: #f0f0f0; padding: 10px; margin: 10px; border: 1px solid #ccc;">
-            <h3>Debug - Current Budget Data (Always Visible):</h3>
-            <p><strong>Rent:</strong> <?php echo $budget_data['rent'] ?? 'NULL'; ?></p>
-            <p><strong>Groceries:</strong> <?php echo $budget_data['groceries'] ?? 'NULL'; ?></p>
-            <p><strong>Car Cost:</strong> <?php echo $budget_data['car_cost'] ?? 'NULL'; ?></p>
-            <p><strong>Phone:</strong> <?php echo $budget_data['utilities']['phone'] ?? 'NULL'; ?></p>
-            <p><strong>Water:</strong> <?php echo $budget_data['utilities']['water'] ?? 'NULL'; ?></p>
-            <p><strong>Electricity:</strong> <?php echo $budget_data['utilities']['electricity'] ?? 'NULL'; ?></p>
-            <p><strong>Session ID:</strong> <?php echo $_SESSION['current_session_id'] ?? 'NULL'; ?></p>
-        </div>
         
-        <!-- Debug Information (remove in production) -->
-        <?php if (isset($_GET['debug'])): ?>
-        <div style="background-color: #f0f0f0; padding: 10px; margin: 10px; border: 1px solid #ccc;">
-            <h3>Debug Information:</h3>
-            <p><strong>Current Session ID:</strong> <?php echo $_SESSION['current_session_id'] ?? 'Not set'; ?></p>
-            <p><strong>Budget Data:</strong> <?php echo $budget_data ? 'Loaded' : 'Not loaded'; ?></p>
-            <p><strong>Destination Data:</strong> <?php echo $destination_data ? 'Loaded' : 'Not loaded'; ?></p>
-            <?php if ($current_session): ?>
-                <p><strong>Session Data Keys:</strong> <?php echo implode(', ', array_keys($current_session['user_data'] ?? [])); ?></p>
-                <?php if (isset($current_session['user_data']['destination_data'])): ?>
-                    <p><strong>Destination Data:</strong> <?php echo htmlspecialchars(json_encode($current_session['user_data']['destination_data'])); ?></p>
-                <?php endif; ?>
-                <?php if (isset($current_session['user_data']['household_data'])): ?>
-                    <p><strong>Household Data Location:</strong> <?php echo htmlspecialchars($current_session['user_data']['household_data']['location'] ?? 'Not set'); ?></p>
-                <?php endif; ?>
-            <?php endif; ?>
-            <p><strong>All Sessions Count:</strong> <?php echo count($all_sessions); ?></p>
-        </div>
-        <?php endif; ?>
         
         <div class="budget-actions">
             <form id="loadInformation" action="budget.php" method="post" class="budget-action-form">
@@ -934,9 +766,6 @@ if (isset($_POST['Update'])) {
             <input type="hidden" name="form_submitted" value="1">
             <div class="budget-actions">
                 <input type="submit" name="Generate" value="Generate Analysis" class="btn btn-primary" style="padding: 10px 20px; border: none; border-radius: 5px; background-color: #007bff; color: white; cursor: pointer;">
-                <button type="submit" name="TestForm" class="btn btn-secondary" style="margin-left: 10px;">
-                    Test Form
-                </button>
                 <button type="submit" name="Save" class="btn btn-success" style="margin-left: 10px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>

@@ -53,7 +53,7 @@ try {
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)");
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_profiles_created_at ON user_profiles(created_at DESC)");
     
-    // Create a demo user for testing
+    // Create a demo user
     $demo_username = 'demo';
     $demo_password = 'demo';
     $demo_password_hash = hash('sha256', $demo_password);

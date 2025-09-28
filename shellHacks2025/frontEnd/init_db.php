@@ -68,7 +68,7 @@
         
         echo "<p class='success'>✅ Database tables created successfully!</p>";
         
-        // Create a demo user for testing
+        // Create a demo user
         $demo_username = 'demo';
         $demo_password = 'demo';
         $demo_password_hash = hash('sha256', $demo_password);

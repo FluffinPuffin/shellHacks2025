@@ -413,7 +413,11 @@ if (isset($_POST['Update'])) {
 
 <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-    <title> </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Builder - Budget App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css">
 </head>
 
@@ -447,263 +451,308 @@ if (isset($_POST['Update'])) {
         <?php endif; ?>
         
         <div class="budget-actions">
-            <form id="loadInformation" action="budget.php" method="post">
-                <select name="load_session_id">
-                    <option value="">Select a saved budget to load...</option>
-                    <?php foreach ($all_sessions as $session): ?>
-                        <?php if (isset($session['user_data']['household_data'])): ?>
-                            <?php $data = $session['user_data']['household_data']; ?>
-                            <option value="<?php echo $session['session_id']; ?>">
-                                <?php echo htmlspecialchars($data['name'] ?? 'Unknown User'); ?> - 
-                                <?php echo date('M j, Y g:i A', strtotime($session['created_at'])); ?>
-                            </option>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                </select>
-                <input type="submit" value="Load Selected Budget" name="Load">
+            <form id="loadInformation" action="budget.php" method="post" class="budget-action-form">
+                <div class="form-group">
+                    <label for="load_session_id">Load Saved Budget</label>
+                    <select name="load_session_id" id="load_session_id">
+                        <option value="">Select a saved budget to load...</option>
+                        <?php foreach ($all_sessions as $session): ?>
+                            <?php if (isset($session['user_data']['household_data'])): ?>
+                                <?php $data = $session['user_data']['household_data']; ?>
+                                <option value="<?php echo $session['session_id']; ?>">
+                                    <?php echo htmlspecialchars($data['name'] ?? 'Unknown User'); ?> - 
+                                    <?php echo date('M j, Y g:i A', strtotime($session['created_at'])); ?>
+                                </option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <button type="submit" name="Load" class="btn btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7,10 12,15 17,10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Load Selected Budget
+                </button>
             </form>
             
-            <form id="saveInformation" action="budget.php" method="post">
-                <input type="submit" value="Save Current Budget" name="Save">
+            <form id="saveInformation" action="budget.php" method="post" class="budget-action-form">
+                <button type="submit" name="Save" class="btn btn-success">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17,21 17,13 7,13 7,21"></polyline>
+                        <polyline points="7,3 7,8 15,8"></polyline>
+                    </svg>
+                    Save Current Budget
+                </button>
             </form>
             
-            <form id="newBudget" action="budget.php" method="post">
-                <input type="submit" value="Create New Budget" name="NewBudget">
+            <form id="newBudget" action="budget.php" method="post" class="budget-action-form">
+                <button type="submit" name="NewBudget" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Create New Budget
+                </button>
             </form>
         </div>
 
         <form name="budgetForm" id="budgetForm" method="POST" action="">
             <div class="budget-actions">
-                <input type="submit" value="Generate Analysis" name="Generate">
+                <button type="submit" name="Generate" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                    </svg>
+                    Generate Analysis
+                </button>
             </div>
-            <table border="1">
-                <tr>
-                    <section class="compare-section">
-                        <div class="reports-container">
-                            <th>
-                                <div class="location-report">
-                                    <h3>Personal Information</h3>
-                                    <div class="report-item">
-                                        <strong>Name:</strong>
-                                        <input type="text" name="name" value="<?php echo htmlspecialchars($budget_data['name'] ?? ''); ?>">
-                                    </div>
-                                    <div class="report-item">
-                                        <strong>Age:</strong>
-                                        <input type="number" name="age" value="<?php echo htmlspecialchars($budget_data['age'] ?? ''); ?>" min="18">
-                                    </div>
-                                    <div class="report-item">
-                                        <strong>Location:</strong>
-                                        <input type="text" name="location" value="<?php echo htmlspecialchars($budget_data['location'] ?? ''); ?>">
-                                    </div>
-                                    <div class="report-item">
-                                        <strong>Household Size:</strong>
-                                        <input type="number" name="household_size" value="<?php echo htmlspecialchars($budget_data['household_size'] ?? ''); ?>" min="1">
-                                    </div>
-                                    <div class="report-item">
-                                        <strong>Bedrooms:</strong>
-                                        <input type="number" name="bedrooms" value="<?php echo htmlspecialchars($budget_data['bedrooms'] ?? ''); ?>" min="0">
-                                    </div>
-                                    <div class="report-item">
-                                        <strong>Bathrooms:</strong>
-                                        <input type="number" name="bathrooms" value="<?php echo htmlspecialchars($budget_data['bathrooms'] ?? ''); ?>" min="0" step="0.5">
-                                    </div>
-                                </div>
-                            </th>
-                            
-                            <th>
-                                <div class="location-report">
-                                    <h3>Financial Information</h3>
-                                    <div class="cost-section">
-                                        <div class="report-item">
-                                            <strong>Monthly Rent:</strong>
-                                            <input type="number" name="rent" value="<?php echo htmlspecialchars($budget_data['rent'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Water Bill:</strong>
-                                            <input type="number" name="water" value="<?php echo htmlspecialchars($budget_data['utilities']['water'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Phone Bill:</strong>
-                                            <input type="number" name="phone" value="<?php echo htmlspecialchars($budget_data['utilities']['phone'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Electricity:</strong>
-                                            <input type="number" name="electricity" value="<?php echo htmlspecialchars($budget_data['utilities']['electricity'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Other Utilities:</strong>
-                                            <input type="number" name="other_utilities" value="<?php echo htmlspecialchars($budget_data['utilities']['other'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Groceries:</strong>
-                                            <input type="number" name="groceries" value="<?php echo htmlspecialchars($budget_data['groceries'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Savings Goal:</strong>
-                                            <input type="number" name="savings" value="<?php echo htmlspecialchars($budget_data['savings'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Car Ownership Cost:</strong>
-                                            <input type="number" name="car_cost" value="<?php echo htmlspecialchars($budget_data['car_cost'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Health Insurance:</strong>
-                                            <input type="number" name="health_insurance" value="<?php echo htmlspecialchars($budget_data['health_insurance'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                    </div>
-                                </div>
-                            </th>
-                            
-                            <th>
-                                <div class="location-report">
-                                    <h3>Debt Information</h3>
-                                    <div class="cost-section">
-                                        <div class="report-item">
-                                            <strong>Total Debt:</strong>
-                                            <input type="number" name="total_debt" value="<?php echo htmlspecialchars($budget_data['debt']['total_debt'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Monthly Debt Payment:</strong>
-                                            <input type="number" name="monthly_debt" value="<?php echo htmlspecialchars($budget_data['debt']['monthly_payment'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Debt Type:</strong>
-                                            <input type="text" name="debt_type" value="<?php echo htmlspecialchars($budget_data['debt']['debt_type'] ?? ''); ?>">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Interest Rate (%):</strong>
-                                            <input type="number" name="interest_rate" value="<?php echo htmlspecialchars($budget_data['debt']['interest_rate'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="report-item total">
-                                        <strong>Total Monthly Expenses:</strong>
-                                        <span><strong>$<?php 
-                                            if ($budget_data) {
-                                                $total = ($budget_data['rent'] ?? 0) + 
-                                                        (($budget_data['utilities']['water'] ?? 0) + 
-                                                         ($budget_data['utilities']['phone'] ?? 0) + 
-                                                         ($budget_data['utilities']['electricity'] ?? 0) + 
-                                                         ($budget_data['utilities']['other'] ?? 0)) + 
-                                                        ($budget_data['groceries'] ?? 0) + 
-                                                        ($budget_data['car_cost'] ?? 0) + 
-                                                        ($budget_data['health_insurance'] ?? 0) + 
-                                                        ($budget_data['debt']['monthly_payment'] ?? 0);
-                                                echo number_format($total, 2);
-                                            } else {
-                                                echo "0.00";
-                                            }
-                                        ?></strong></span>
-                                    </div>
-                                    
-                                    <input type="submit" name="Update" value="Update Budget">
-                                </div>
-                            </th>
+            
+            <div class="compare-section">
+                <div class="budget-forms-row">
+                    <div class="location-form">
+                        <h3 class="text-center">Personal Information</h3>
+                        <div class="report-item">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($budget_data['name'] ?? ''); ?>" placeholder="Enter your full name">
                         </div>
-                    </section>
-                </tr>
-            </table>
+                        <div class="report-item">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" name="age" value="<?php echo htmlspecialchars($budget_data['age'] ?? ''); ?>" min="18" placeholder="Enter your age">
+                        </div>
+                        <div class="report-item">
+                            <label for="location">Location</label>
+                            <input type="text" id="location" name="location" value="<?php echo htmlspecialchars($budget_data['location'] ?? ''); ?>" placeholder="City, State">
+                        </div>
+                        <div class="report-item">
+                            <label for="household_size">Household Size</label>
+                            <input type="number" id="household_size" name="household_size" value="<?php echo htmlspecialchars($budget_data['household_size'] ?? ''); ?>" min="1" placeholder="Number of people">
+                        </div>
+                        <div class="report-item">
+                            <label for="bedrooms">Bedrooms</label>
+                            <input type="number" id="bedrooms" name="bedrooms" value="<?php echo htmlspecialchars($budget_data['bedrooms'] ?? ''); ?>" min="0" placeholder="Number of bedrooms">
+                        </div>
+                        <div class="report-item">
+                            <label for="bathrooms">Bathrooms</label>
+                            <input type="number" id="bathrooms" name="bathrooms" value="<?php echo htmlspecialchars($budget_data['bathrooms'] ?? ''); ?>" min="0" step="0.5" placeholder="Number of bathrooms">
+                        </div>
+                    </div>
+                    
+                    <div class="location-form">
+                        <h3 class="text-center">Financial Information</h3>
+                        <div class="cost-section">
+                            <div class="report-item">
+                                <label for="rent">Monthly Rent</label>
+                                <input type="number" id="rent" name="rent" value="<?php echo htmlspecialchars($budget_data['rent'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="report-item">
+                                <label for="water">Water Bill</label>
+                                <input type="number" id="water" name="water" value="<?php echo htmlspecialchars($budget_data['utilities']['water'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="report-item">
+                                <label for="phone">Phone Bill</label>
+                                <input type="number" id="phone" name="phone" value="<?php echo htmlspecialchars($budget_data['utilities']['phone'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="report-item">
+                                <label for="electricity">Electricity</label>
+                                <input type="number" id="electricity" name="electricity" value="<?php echo htmlspecialchars($budget_data['utilities']['electricity'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="report-item">
+                                <label for="other_utilities">Other Utilities</label>
+                                <input type="number" id="other_utilities" name="other_utilities" value="<?php echo htmlspecialchars($budget_data['utilities']['other'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="report-item">
+                                <label for="groceries">Groceries</label>
+                                <input type="number" id="groceries" name="groceries" value="<?php echo htmlspecialchars($budget_data['groceries'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="report-item">
+                                <label for="savings">Savings Goal</label>
+                                <input type="number" id="savings" name="savings" value="<?php echo htmlspecialchars($budget_data['savings'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="report-item">
+                                <label for="car_cost">Car Ownership Cost</label>
+                                <input type="number" id="car_cost" name="car_cost" value="<?php echo htmlspecialchars($budget_data['car_cost'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="report-item">
+                                <label for="health_insurance">Health Insurance</label>
+                                <input type="number" id="health_insurance" name="health_insurance" value="<?php echo htmlspecialchars($budget_data['health_insurance'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="location-form">
+                        <h3 class="text-center">Debt Information</h3>
+                        <div class="cost-section">
+                            <div class="report-item">
+                                <label for="total_debt">Total Debt</label>
+                                <input type="number" id="total_debt" name="total_debt" value="<?php echo htmlspecialchars($budget_data['debt']['total_debt'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="report-item">
+                                <label for="monthly_debt">Monthly Debt Payment</label>
+                                <input type="number" id="monthly_debt" name="monthly_debt" value="<?php echo htmlspecialchars($budget_data['debt']['monthly_payment'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="report-item">
+                                <label for="debt_type">Debt Type</label>
+                                <input type="text" id="debt_type" name="debt_type" value="<?php echo htmlspecialchars($budget_data['debt']['debt_type'] ?? ''); ?>" placeholder="e.g., Credit Card, Student Loan">
+                            </div>
+                            <div class="report-item">
+                                <label for="interest_rate">Interest Rate (%)</label>
+                                <input type="number" id="interest_rate" name="interest_rate" value="<?php echo htmlspecialchars($budget_data['debt']['interest_rate'] ?? ''); ?>" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+                        
+                        <div class="report-item total text-center">
+                            <strong>Total Monthly Expenses:</strong>
+                            <div class="total-amount">$<?php 
+                                if ($budget_data) {
+                                    $total = ($budget_data['rent'] ?? 0) + 
+                                            (($budget_data['utilities']['water'] ?? 0) + 
+                                             ($budget_data['utilities']['phone'] ?? 0) + 
+                                             ($budget_data['utilities']['electricity'] ?? 0) + 
+                                             ($budget_data['utilities']['other'] ?? 0)) + 
+                                            ($budget_data['groceries'] ?? 0) + 
+                                            ($budget_data['car_cost'] ?? 0) + 
+                                            ($budget_data['health_insurance'] ?? 0) + 
+                                            ($budget_data['debt']['monthly_payment'] ?? 0);
+                                    echo number_format($total, 2);
+                                } else {
+                                    echo "0.00";
+                                }
+                            ?></div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button type="submit" name="Update" class="btn btn-secondary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                                Update Budget
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </form>
 
         <!-- Location Comparison Section -->
         <?php if ($destination_data): ?>
-        <div class="location-comparison">
-            <h2>Location Comparison</h2>
-            <div class="comparison-container">
-                <div class="comparison-card current-location">
-                    <h3>Current Location</h3>
-                    <div class="comparison-item">
+        <div class="compare-section">
+            <h2 class="text-center">Location Comparison</h2>
+            <div class="reports-container">
+                <div class="location-form">
+                    <h3 class="text-center">Current Location</h3>
+                    <div class="report-item">
                         <strong>Location:</strong> <?php echo htmlspecialchars($budget_data['location'] ?? 'N/A'); ?>
                     </div>
-                    <div class="comparison-item">
+                    <div class="report-item">
                         <strong>Household Size:</strong> <?php echo htmlspecialchars($budget_data['household_size'] ?? 'N/A'); ?>
                     </div>
-                    <div class="comparison-item">
+                    <div class="report-item">
                         <strong>Bedrooms/Bathrooms:</strong> <?php echo htmlspecialchars(($budget_data['bedrooms'] ?? 'N/A') . '/' . ($budget_data['bathrooms'] ?? 'N/A')); ?>
                     </div>
-                    <div class="comparison-item">
+                    <div class="report-item">
                         <strong>Rent:</strong> $<?php echo number_format($budget_data['rent'] ?? 0, 2); ?>
                     </div>
-                    <div class="comparison-item">
+                    <div class="report-item">
                         <strong>Utilities:</strong> $<?php echo number_format($budget_data['utilities']['water'] ?? 0, 2); ?>
                     </div>
-                    <div class="comparison-item">
+                    <div class="report-item">
                         <strong>Groceries:</strong> $<?php echo number_format($budget_data['groceries'] ?? 0, 2); ?>
                     </div>
-                    <div class="comparison-item total">
-                        <strong>Total Monthly:</strong> $<?php 
+                    <div class="report-item total text-center">
+                        <strong>Total Monthly:</strong>
+                        <div class="total-amount">$<?php 
                             $current_total = ($budget_data['rent'] ?? 0) + 
                                            ($budget_data['utilities']['water'] ?? 0) + 
                                            ($budget_data['groceries'] ?? 0);
                             echo number_format($current_total, 2);
-                        ?>
+                        ?></div>
                     </div>
                 </div>
                 
-                <div class="comparison-card destination-location">
-                    <h3>Destination Location</h3>
-                    <div class="comparison-item">
+                <div class="location-form">
+                    <h3 class="text-center">Destination Location</h3>
+                    <div class="report-item">
                         <strong>Location:</strong> <?php echo htmlspecialchars($destination_data['location'] ?? 'N/A'); ?>
                     </div>
-                    <div class="comparison-item">
+                    <div class="report-item">
                         <strong>Household Size:</strong> <?php echo htmlspecialchars($destination_data['household_size'] ?? 'N/A'); ?>
                     </div>
-                    <div class="comparison-item">
+                    <div class="report-item">
                         <strong>Bedrooms/Bathrooms:</strong> <?php echo htmlspecialchars(($destination_data['bedrooms'] ?? 'N/A') . '/' . ($destination_data['bathrooms'] ?? 'N/A')); ?>
                     </div>
-                    <div class="comparison-item">
+                    <div class="report-item">
                         <strong>Rent:</strong> $<?php echo number_format($destination_data['rent'] ?? 0, 2); ?>
                     </div>
-                    <div class="comparison-item">
+                    <div class="report-item">
                         <strong>Utilities:</strong> $<?php echo number_format($destination_data['utilities'] ?? 0, 2); ?>
                     </div>
-                    <div class="comparison-item">
+                    <div class="report-item">
                         <strong>Groceries:</strong> $<?php echo number_format($destination_data['groceries'] ?? 0, 2); ?>
                     </div>
-                    <div class="comparison-item total">
-                        <strong>Total Monthly:</strong> $<?php 
+                    <div class="report-item total text-center">
+                        <strong>Total Monthly:</strong>
+                        <div class="total-amount">$<?php 
                             $destination_total = ($destination_data['rent'] ?? 0) + 
                                                ($destination_data['utilities'] ?? 0) + 
                                                ($destination_data['groceries'] ?? 0);
                             echo number_format($destination_total, 2);
-                        ?>
+                        ?></div>
                     </div>
                 </div>
             </div>
             
             <!-- Comparison Summary -->
-            <div class="comparison-summary">
-                <h3>Comparison Summary</h3>
-                <div class="summary-item">
-                    <strong>Monthly Difference:</strong> 
-                    <?php 
-                        $difference = $destination_total - $current_total;
-                        $difference_text = $difference >= 0 ? '+' : '';
-                        $difference_color = $difference >= 0 ? 'red' : 'green';
-                        echo '<span style="color: ' . $difference_color . ';">' . $difference_text . '$' . number_format($difference, 2) . '</span>';
-                    ?>
-                </div>
-                <div class="summary-item">
-                    <strong>Annual Difference:</strong> 
-                    <?php 
-                        $annual_difference = $difference * 12;
-                        $annual_difference_text = $annual_difference >= 0 ? '+' : '';
-                        $annual_difference_color = $annual_difference >= 0 ? 'red' : 'green';
-                        echo '<span style="color: ' . $annual_difference_color . ';">' . $annual_difference_text . '$' . number_format($annual_difference, 2) . '</span>';
-                    ?>
-                </div>
-                <div class="summary-item">
-                    <strong>Percentage Change:</strong> 
-                    <?php 
-                        if ($current_total > 0) {
-                            $percentage_change = (($destination_total - $current_total) / $current_total) * 100;
-                            $percentage_text = $percentage_change >= 0 ? '+' : '';
-                            $percentage_color = $percentage_change >= 0 ? 'red' : 'green';
-                            echo '<span style="color: ' . $percentage_color . ';">' . $percentage_text . number_format($percentage_change, 1) . '%</span>';
-                        } else {
-                            echo 'N/A';
-                        }
-                    ?>
+            <div class="location-form">
+                <h3 class="text-center">Comparison Summary</h3>
+                <div class="cost-section">
+                    <div class="report-item text-center">
+                        <strong>Monthly Difference:</strong> 
+                        <div class="total-amount <?php 
+                            $difference = $destination_total - $current_total;
+                            echo $difference >= 0 ? 'text-red-600' : 'text-green-600';
+                        ?>">
+                            <?php 
+                                $difference_text = $difference >= 0 ? '+' : '';
+                                echo $difference_text . '$' . number_format($difference, 2);
+                            ?>
+                        </div>
+                    </div>
+                    <div class="report-item text-center">
+                        <strong>Annual Difference:</strong> 
+                        <div class="total-amount <?php 
+                            $annual_difference = $difference * 12;
+                            echo $annual_difference >= 0 ? 'text-red-600' : 'text-green-600';
+                        ?>">
+                            <?php 
+                                $annual_difference_text = $annual_difference >= 0 ? '+' : '';
+                                echo $annual_difference_text . '$' . number_format($annual_difference, 2);
+                            ?>
+                        </div>
+                    </div>
+                    <div class="report-item text-center">
+                        <strong>Percentage Change:</strong> 
+                        <div class="total-amount <?php 
+                            if ($current_total > 0) {
+                                $percentage_change = (($destination_total - $current_total) / $current_total) * 100;
+                                echo $percentage_change >= 0 ? 'text-red-600' : 'text-green-600';
+                            }
+                        ?>">
+                            <?php 
+                                if ($current_total > 0) {
+                                    $percentage_text = $percentage_change >= 0 ? '+' : '';
+                                    echo $percentage_text . number_format($percentage_change, 1) . '%';
+                                } else {
+                                    echo 'N/A';
+                                }
+                            ?>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -804,35 +853,6 @@ if (isset($_POST['Update'])) {
                     <p><em>Analysis generated on: <?php echo $analysis['generated_at']; ?></em></p>
                 </div>
             </div>
-        <?php endif; ?>
-        
-        <!-- Recent Sessions -->
-        <?php if (!empty($all_sessions)): ?>
-        <div class="recent-sessions">
-            <h2>Recent Budget Sessions</h2>
-            <div class="sessions-grid">
-                <?php foreach ($all_sessions as $session): ?>
-                    <?php if (isset($session['user_data']['household_data'])): ?>
-                        <?php $data = $session['user_data']['household_data']; ?>
-                        <div class="session-card">
-                            <h3><?php echo htmlspecialchars($data['name'] ?? 'Unknown User'); ?></h3>
-                            <p><strong>Location:</strong> <?php echo htmlspecialchars($data['location'] ?? 'N/A'); ?></p>
-                            <p><strong>Created:</strong> <?php echo date('M j, Y g:i A', strtotime($session['created_at'])); ?></p>
-                            <p><strong>Total Monthly:</strong> $<?php 
-                                $total = ($data['rent'] ?? 0) + 
-                                        (($data['utilities']['water'] ?? 0) + 
-                                         ($data['utilities']['phone'] ?? 0) + 
-                                         ($data['utilities']['electricity'] ?? 0) + 
-                                         ($data['utilities']['other'] ?? 0)) + 
-                                        ($data['groceries'] ?? 0) + 
-                                        ($data['debt']['monthly_payment'] ?? 0);
-                                echo number_format($total, 2);
-                            ?></p>
-                        </div>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </div>
-        </div>
         <?php endif; ?>
     </div>
 </body>

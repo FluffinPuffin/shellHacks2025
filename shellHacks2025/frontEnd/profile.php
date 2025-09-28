@@ -176,7 +176,7 @@ if ($_POST && isset($_POST['update_profile'])) {
     <?php include 'navigation.php'?>
 
     <div class="profile-container">
-        <h1>Profile</h1>
+        <h1>Profile & Dashboard</h1>
         <?php if (isset($_SESSION['username'])){ ?>
 
         <?php if ($success_message): ?>
@@ -188,6 +188,184 @@ if ($_POST && isset($_POST['update_profile'])) {
         <?php if ($error_message): ?>
             <div class="error-message">
                 <?php echo htmlspecialchars($error_message); ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Profile Overview Section -->
+        <div class="profile-overview">
+            <div class="overview-card">
+                <h2>Profile Overview</h2>
+                <?php if ($current_session && isset($current_session['user_data']['household_data'])): ?>
+                    <?php $data = $current_session['user_data']['household_data']; ?>
+                    <div class="profile-summary">
+                        <div class="summary-item">
+                            <strong>Name:</strong> <?php echo htmlspecialchars($data['name'] ?? 'Not set'); ?>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Location:</strong> <?php echo htmlspecialchars($data['location'] ?? 'Not set'); ?>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Household:</strong> <?php echo htmlspecialchars($data['household_size'] ?? 'Not set'); ?> people, 
+                            <?php echo htmlspecialchars($data['bedrooms'] ?? '0'); ?> bed / 
+                            <?php echo htmlspecialchars($data['bathrooms'] ?? '0'); ?> bath
+                        </div>
+                        <div class="summary-item">
+                            <strong>Current Budget:</strong> 
+                            <?php if (isset($data['rent']) && $data['rent'] > 0): ?>
+                                $<?php echo number_format($data['rent'], 0); ?>/month
+                            <?php else: ?>
+                                Not set
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="profile-summary">
+                        <p>No profile data available. Please complete your profile below.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Quick Actions Section -->
+        <div class="quick-actions">
+            <h2>Quick Actions</h2>
+            <div class="action-buttons">
+                <a href="budget.php" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3h18v18H3zM9 9h6v6H9z"></path>
+                    </svg>
+                    View Budget Analysis
+                </a>
+                <a href="location.php" class="btn btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    Compare Locations
+                </a>
+                <a href="initialQuestions.php" class="btn btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                    </svg>
+                    Start New Analysis
+                </a>
+            </div>
+        </div>
+
+        <!-- Budget Summary Section -->
+        <?php if ($current_session && isset($current_session['user_data']['household_data'])): ?>
+            <?php $data = $current_session['user_data']['household_data']; ?>
+            <div class="budget-summary">
+                <h2>Current Budget Summary</h2>
+                <div class="budget-overview">
+                    <div class="budget-item">
+                        <span class="budget-label">Monthly Rent:</span>
+                        <span class="budget-value">$<?php echo number_format($data['rent'] ?? 0, 2); ?></span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Utilities:</span>
+                        <span class="budget-value">$<?php echo number_format(($data['utilities']['water'] ?? 0) + ($data['utilities']['phone'] ?? 0) + ($data['utilities']['electricity'] ?? 0) + ($data['utilities']['other'] ?? 0), 2); ?></span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Groceries:</span>
+                        <span class="budget-value">$<?php echo number_format($data['groceries'] ?? 0, 2); ?></span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Car Costs:</span>
+                        <span class="budget-value">$<?php echo number_format($data['car_cost'] ?? 0, 2); ?></span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Health Insurance:</span>
+                        <span class="budget-value">$<?php echo number_format($data['health_insurance'] ?? 0, 2); ?></span>
+                    </div>
+                    <div class="budget-item total">
+                        <span class="budget-label">Total Monthly:</span>
+                        <span class="budget-value">$<?php 
+                            $total = ($data['rent'] ?? 0) + 
+                                    (($data['utilities']['water'] ?? 0) + ($data['utilities']['phone'] ?? 0) + ($data['utilities']['electricity'] ?? 0) + ($data['utilities']['other'] ?? 0)) + 
+                                    ($data['groceries'] ?? 0) + 
+                                    ($data['car_cost'] ?? 0) + 
+                                    ($data['health_insurance'] ?? 0) + 
+                                    ($data['debt']['monthly_payment'] ?? 0);
+                            echo number_format($total, 2);
+                        ?></span>
+                    </div>
+                </div>
+                <div class="budget-actions">
+                    <a href="budget.php" class="btn btn-primary">Edit Budget</a>
+                    <?php if (isset($current_session['user_data']['destination_data'])): ?>
+                        <a href="location.php" class="btn btn-secondary">View Location Comparison</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Location Comparison Section -->
+        <?php if ($current_session && isset($current_session['user_data']['destination_data'])): ?>
+            <?php $destination = $current_session['user_data']['destination_data']; ?>
+            <div class="location-comparison">
+                <h2>Location Comparison</h2>
+                <div class="comparison-overview">
+                    <div class="location-item">
+                        <strong>Current:</strong> <?php echo htmlspecialchars($data['location'] ?? 'N/A'); ?>
+                        <span class="location-cost">$<?php echo number_format($data['rent'] ?? 0, 0); ?>/month</span>
+                    </div>
+                    <div class="location-arrow">→</div>
+                    <div class="location-item">
+                        <strong>Destination:</strong> <?php echo htmlspecialchars($destination['location'] ?? 'N/A'); ?>
+                        <span class="location-cost">$<?php echo number_format($destination['rent'] ?? 0, 0); ?>/month</span>
+                    </div>
+                </div>
+                <div class="comparison-difference">
+                    <?php 
+                    $current_rent = $data['rent'] ?? 0;
+                    $destination_rent = $destination['rent'] ?? 0;
+                    $difference = $destination_rent - $current_rent;
+                    $difference_text = $difference >= 0 ? '+' : '';
+                    $difference_class = $difference >= 0 ? 'increase' : 'decrease';
+                    ?>
+                    <span class="difference-label">Monthly Difference:</span>
+                    <span class="difference-value <?php echo $difference_class; ?>">
+                        <?php echo $difference_text . '$' . number_format($difference, 0); ?>
+                    </span>
+                </div>
+                <div class="comparison-actions">
+                    <a href="location.php" class="btn btn-primary">Edit Comparison</a>
+                    <a href="budget.php" class="btn btn-secondary">View Full Analysis</a>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Recent Sessions Section -->
+        <?php
+        $recent_sessions = $db->getRecentSessions(3);
+        if (!empty($recent_sessions)):
+        ?>
+            <div class="recent-sessions">
+                <h2>Recent Budget Sessions</h2>
+                <div class="sessions-list">
+                    <?php foreach ($recent_sessions as $session): ?>
+                        <?php if (isset($session['user_data']['household_data'])): ?>
+                            <?php $session_data = $session['user_data']['household_data']; ?>
+                            <div class="session-item">
+                                <div class="session-info">
+                                    <strong><?php echo htmlspecialchars($session_data['name'] ?? 'Budget Session'); ?></strong>
+                                    <span class="session-location"><?php echo htmlspecialchars($session_data['location'] ?? 'N/A'); ?></span>
+                                    <span class="session-date"><?php echo date('M j, Y', strtotime($session['created_at'])); ?></span>
+                                </div>
+                                <div class="session-actions">
+                                    <a href="budget.php" class="btn btn-sm">View</a>
+                                    <?php if (isset($session['user_data']['destination_data'])): ?>
+                                        <a href="location.php" class="btn btn-sm btn-secondary">Compare</a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+                <div class="sessions-actions">
+                    <a href="home.php" class="btn btn-outline">View All Sessions</a>
+                </div>
             </div>
         <?php endif; ?>
 

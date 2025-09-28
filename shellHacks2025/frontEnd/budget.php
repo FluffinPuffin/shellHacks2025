@@ -522,7 +522,55 @@ if (isset($_POST['NewBudget'])) {
     }
 }
 
-
+if (isset($_POST['NewSession'])) {
+    // Create a new session with profile data from current session
+    $new_session_id = 'session_' . uniqid();
+    
+    // Get current profile data to use as template
+    $current_profile_data = [
+        'name' => $budget_data['name'] ?? '',
+        'age' => $budget_data['age'] ?? 0,
+        'location' => $budget_data['location'] ?? '',
+        'household_size' => $budget_data['household_size'] ?? 1,
+        'bedrooms' => $budget_data['bedrooms'] ?? 0,
+        'bathrooms' => $budget_data['bathrooms'] ?? 0,
+        'rent' => 0, // Reset financial data
+        'utilities' => [
+            'water' => 0,
+            'phone' => 0,
+            'electricity' => 0,
+            'other' => 0
+        ],
+        'groceries' => 0,
+        'savings' => 0,
+        'car_cost' => 0,
+        'health_insurance' => 0,
+        'debt' => [
+            'total_debt' => 0,
+            'monthly_payment' => 0,
+            'debt_type' => '',
+            'interest_rate' => 0
+        ],
+        'monthly_payments' => []
+    ];
+    
+    $new_session_data = [
+        'user_data' => [
+            'household_data' => $current_profile_data,
+            'destination_data' => null,
+            'app_requirements' => null,
+        ]
+    ];
+    
+    if ($db->createSession($new_session_id, $new_session_data)) {
+        $_SESSION['current_session_id'] = $new_session_id;
+        $budget_data = $current_profile_data;
+        $current_session = $db->getSession($new_session_id);
+        $message = "New session created successfully! Profile data copied from previous session. You can now modify the profile information and generate a new budget analysis.";
+    } else {
+        $message = "Failed to create new session.";
+    }
+}
 
 if (isset($_POST['Generate'])) {
     // Debug: Show that Generate button was clicked
@@ -866,6 +914,18 @@ if (isset($_POST['Update'])) {
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
                     Create New Budget
+                </button>
+            </form>
+            
+            <form id="newSession" action="budget.php" method="post" class="budget-action-form">
+                <button type="submit" name="NewSession" class="btn btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    Create New Session
                 </button>
             </form>
         </div>

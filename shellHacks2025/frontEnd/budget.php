@@ -435,7 +435,14 @@ if (isset($_POST['Update'])) {
             <p><strong>Destination Data:</strong> <?php echo $destination_data ? 'Loaded' : 'Not loaded'; ?></p>
             <?php if ($current_session): ?>
                 <p><strong>Session Data Keys:</strong> <?php echo implode(', ', array_keys($current_session['user_data'] ?? [])); ?></p>
+                <?php if (isset($current_session['user_data']['destination_data'])): ?>
+                    <p><strong>Destination Data:</strong> <?php echo htmlspecialchars(json_encode($current_session['user_data']['destination_data'])); ?></p>
+                <?php endif; ?>
+                <?php if (isset($current_session['user_data']['household_data'])): ?>
+                    <p><strong>Household Data Location:</strong> <?php echo htmlspecialchars($current_session['user_data']['household_data']['location'] ?? 'Not set'); ?></p>
+                <?php endif; ?>
             <?php endif; ?>
+            <p><strong>All Sessions Count:</strong> <?php echo count($all_sessions); ?></p>
         </div>
         <?php endif; ?>
         

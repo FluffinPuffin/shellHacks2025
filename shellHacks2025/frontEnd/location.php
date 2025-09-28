@@ -21,37 +21,82 @@ if (isset($_SESSION['current_session_id'])) {
 
 // Handle form submissions
 if (isset($_POST['generate_comparison'])) {
-    // Update current location data in session
-    if ($household_data) {
-        $household_data['location'] = $_POST['current_location'];
-        $household_data['household_size'] = (int)$_POST['current_household_size'];
-        $household_data['bedrooms'] = (int)explode('/', $_POST['current_bath_bed'])[0] ?? 0;
-        $household_data['bathrooms'] = (int)explode('/', $_POST['current_bath_bed'])[1] ?? 0;
-        $household_data['rent'] = (float)$_POST['current_rent'];
-        $household_data['utilities']['water'] = (float)$_POST['current_utilities'];
-        $household_data['groceries'] = (float)$_POST['current_groceries'];
-        
-        // Store destination data for comparison
-        $destination_data = [
-            'location' => $_POST['destination_location'],
-            'household_size' => (int)$_POST['destination_household_size'],
-            'bedrooms' => (int)explode('/', $_POST['destination_bath_bed'])[0] ?? 0,
-            'bathrooms' => (int)explode('/', $_POST['destination_bath_bed'])[1] ?? 0,
-            'rent' => (float)$_POST['destination_rent'],
-            'utilities' => (float)$_POST['destination_utilities'],
-            'groceries' => (float)$_POST['destination_groceries']
-        ];
-        
-        // Update session in database with both current and destination data
-        $db->updateSession($_SESSION['current_session_id'], [
+    // Prepare current location data
+    $current_location_data = [
+        'name' => $_POST['current_location'] ?? 'User',
+        'age' => 25, // Default age
+        'location' => $_POST['current_location'],
+        'household_size' => (int)$_POST['current_household_size'],
+        'bedrooms' => (int)explode('/', $_POST['current_bath_bed'])[0] ?? 0,
+        'bathrooms' => (int)explode('/', $_POST['current_bath_bed'])[1] ?? 0,
+        'rent' => (float)$_POST['current_rent'],
+        'utilities' => [
+            'water' => (float)$_POST['current_utilities'],
+            'phone' => 0,
+            'electricity' => 0,
+            'other' => 0
+        ],
+        'groceries' => (float)$_POST['current_groceries'],
+        'savings' => 0,
+        'debt' => [
+            'total_debt' => 0,
+            'monthly_payment' => 0,
+            'debt_type' => '',
+            'interest_rate' => 0
+        ],
+        'monthly_payments' => []
+    ];
+    
+    // Store destination data for comparison
+    $destination_data = [
+        'location' => $_POST['destination_location'],
+        'household_size' => (int)$_POST['destination_household_size'],
+        'bedrooms' => (int)explode('/', $_POST['destination_bath_bed'])[0] ?? 0,
+        'bathrooms' => (int)explode('/', $_POST['destination_bath_bed'])[1] ?? 0,
+        'rent' => (float)$_POST['destination_rent'],
+        'utilities' => (float)$_POST['destination_utilities'],
+        'groceries' => (float)$_POST['destination_groceries']
+    ];
+    
+    // Check if we have an existing session to update
+    if (isset($_SESSION['current_session_id']) && $current_session) {
+        // Update existing session
+        $success = $db->updateSession($_SESSION['current_session_id'], [
             'user_data' => [
-                'household_data' => $household_data,
+                'household_data' => $current_location_data,
                 'destination_data' => $destination_data,
                 'app_requirements' => $current_session['user_data']['app_requirements'] ?? null
             ]
         ]);
-        
+    } else {
+        // Create new session
+        $new_session_id = 'session_' . uniqid();
+        $user_data = [
+            'household_data' => $current_location_data,
+            'destination_data' => $destination_data,
+            'app_requirements' => null
+        ];
+        $success = $db->createSession($new_session_id, $user_data);
+        if ($success) {
+            $_SESSION['current_session_id'] = $new_session_id;
+        }
+    }
+    
+    if ($success) {
         $message = "Location comparison generated successfully!";
+        
+        // Debug: Show what was saved
+        if (isset($_GET['debug'])) {
+            $message .= " | Debug: Session ID: " . $_SESSION['current_session_id'];
+            $message .= " | Current: " . $current_location_data['location'];
+            $message .= " | Destination: " . $destination_data['location'];
+        } else {
+            // Redirect to budget page after successful save
+            header("Location: budget.php");
+            exit();
+        }
+    } else {
+        $message = "Error: Failed to save location comparison data.";
     }
 }
 ?>
@@ -223,31 +268,39 @@ function generateComparison() {
         return;
     }
     
-    // Submit the form with all data
-    const form = document.querySelector('form[name="currentLocationForm"]');
-    const formData = new FormData(form);
+    // Create a hidden form to submit all data
+    const hiddenForm = document.createElement('form');
+    hiddenForm.method = 'POST';
+    hiddenForm.action = '';
     
-    // Add destination data to form
+    // Add current location data
+    Object.keys(currentData).forEach(key => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'current_' + key;
+        input.value = currentData[key];
+        hiddenForm.appendChild(input);
+    });
+    
+    // Add destination data
     Object.keys(destinationData).forEach(key => {
-        formData.append('destination_' + key, destinationData[key]);
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'destination_' + key;
+        input.value = destinationData[key];
+        hiddenForm.appendChild(input);
     });
     
-    formData.append('generate_comparison', '1');
+    // Add submit flag
+    const submitInput = document.createElement('input');
+    submitInput.type = 'hidden';
+    submitInput.name = 'generate_comparison';
+    submitInput.value = '1';
+    hiddenForm.appendChild(submitInput);
     
-    // Submit via fetch
-    fetch('', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.text())
-    .then(data => {
-        // Redirect to budget page after successful generation
-        window.location.href = 'budget.php';
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error generating comparison. Please try again.');
-    });
+    // Add form to page and submit
+    document.body.appendChild(hiddenForm);
+    hiddenForm.submit();
 }
 
 // Add event listeners to form inputs

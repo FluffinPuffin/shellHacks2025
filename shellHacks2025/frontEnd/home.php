@@ -20,7 +20,7 @@ $session_count = $db->getSessionCount();
 <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <title> </title>
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/style.css"/>
 </head>
 
 <body>
@@ -70,3 +70,4 @@ $session_count = $db->getSessionCount();
     </div>
 </body>
 </html>
+

@@ -124,79 +124,89 @@ if (isset($_POST['generate_comparison'])) {
 
 
                         <th>
-                            <form name="currentLocationForm" id="currentLocationForm" method="POST" action="">
-                                <div class="location-report">
-                                    <h3>Current Location</h3>
-                                    <div class="report-item">
-                                        <strong>Location:</strong>
-                                        <input type="text" name="current_location" value="<?php echo htmlspecialchars($household_data['location'] ?? ''); ?>">
-                                    </div>
-                                    <div class="report-item">
-                                        <strong>Household Size:</strong>
-                                        <input type="number" name="current_household_size" value="<?php echo htmlspecialchars($household_data['household_size'] ?? ''); ?>">
-                                    </div>
-                                    <div class="report-item">
-                                        <strong>Bath/Bed:</strong>
-                                        <input type="text" name="current_bath_bed" value="<?php echo htmlspecialchars(($household_data['bedrooms'] ?? '') . '/' . ($household_data['bathrooms'] ?? '')); ?>">
-                                    </div>
-                                    <div class="cost-section">
-                                        <div class="report-item">
-                                            <strong>Rent:</strong>
-                                            <input type="number" name="current_rent" value="<?php echo htmlspecialchars($household_data['rent'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Utilities:</strong>
-                                            <input type="number" name="current_utilities" value="<?php echo htmlspecialchars($household_data['utilities']['water'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item">
-                                            <strong>Groceries:</strong>
-                                            <input type="number" name="current_groceries" value="<?php echo htmlspecialchars($household_data['groceries'] ?? ''); ?>" step="0.01">
-                                        </div>
-                                        <div class="report-item total">
-                                            <strong>Total:</strong>
-                                            <span><strong>$<?php 
-                                                $total = ($household_data['rent'] ?? 0) + 
-                                                        ($household_data['utilities']['water'] ?? 0) + 
-                                                        ($household_data['groceries'] ?? 0);
-                                                echo number_format($total, 2);
-                                            ?></strong></span>
-                                        </div>
-                                    </div>
+                            <div class = "charts-container">
+                                <div class="chart-wrapper">
+                                    <canvas id="chart1"></canvas>
+                                        <form name="currentLocationForm" id="currentLocationForm" method="POST" action="">
+                                            <div class="location-report">
+                                                <h3>Current Location</h3>
+                                                <div class="report-item">
+                                                    <strong>Location:</strong>
+                                                    <input type="text" name="current_location" value="<?php echo htmlspecialchars($household_data['location'] ?? ''); ?>">
+                                                </div>
+                                                <div class="report-item">
+                                                    <strong>Household Size:</strong>
+                                                    <input type="number" name="current_household_size" value="<?php echo htmlspecialchars($household_data['household_size'] ?? ''); ?>">
+                                                </div>
+                                                <div class="report-item">
+                                                    <strong>Bath/Bed:</strong>
+                                                    <input type="text" name="current_bath_bed" value="<?php echo htmlspecialchars(($household_data['bedrooms'] ?? '') . '/' . ($household_data['bathrooms'] ?? '')); ?>">
+                                                </div>
+                                                <div class="cost-section">
+                                                    <div class="report-item">
+                                                        <strong>Rent:</strong>
+                                                        <input type="number" name="current_rent" value="<?php echo htmlspecialchars($household_data['rent'] ?? ''); ?>" step="0.01">
+                                                    </div>
+                                                    <div class="report-item">
+                                                        <strong>Utilities:</strong>
+                                                        <input type="number" name="current_utilities" value="<?php echo htmlspecialchars($household_data['utilities']['water'] ?? ''); ?>" step="0.01">
+                                                    </div>
+                                                    <div class="report-item">
+                                                        <strong>Groceries:</strong>
+                                                        <input type="number" name="current_groceries" value="<?php echo htmlspecialchars($household_data['groceries'] ?? ''); ?>" step="0.01">
+                                                    </div>
+                                                    <div class="report-item total">
+                                                        <strong>Total:</strong>
+                                                        <span><strong>$<?php 
+                                                            $total = ($household_data['rent'] ?? 0) + 
+                                                                    ($household_data['utilities']['water'] ?? 0) + 
+                                                                    ($household_data['groceries'] ?? 0);
+                                                            echo number_format($total, 2);
+                                                        ?></strong></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                    </form>
+                                 </div>
                                 </div>
-                            </form>
                         </th>
                         <th>  
-                            <div class="location-report">
-                                <h3>Destination</h3>
-                                <div class="report-item">
-                                    <strong>Location:</strong>
-                                    <input type="text" name="destination_location" value="">
-                                </div>
-                                <div class="report-item">
-                                    <strong>Household Size:</strong>
-                                    <input type="number" name="destination_household_size" value="">
-                                </div>
-                                <div class="report-item">
-                                    <strong>Bath/Bed:</strong>
-                                    <input type="text" name="destination_bath_bed" value="">
-                                </div>
-                                <div class="cost-section">
-                                    <div class="report-item">
-                                        <strong>Rent:</strong>
-                                        <input type="number" name="destination_rent" value="" step="0.01">
-                                    </div>
-                                    <div class="report-item">
-                                        <strong>Utilities:</strong>
-                                        <input type="number" name="destination_utilities" value="" step="0.01">
-                                    </div>
-                                    <div class="report-item">
-                                        <strong>Groceries:</strong>
-                                        <input type="number" name="destination_groceries" value="" step="0.01">
-                                    </div>
-                                    <div class="report-item total">
-                                        <strong>Total:</strong>
-                                        <span><strong>TOTAL HERE</strong></span>
-                                    </div>
+                            <div class = "charts-container">
+                                <div class="chart-wrapper">
+                                    <canvas id="chart2"></canvas>
+                                        <div class="location-report">
+                                            <h3>Destination</h3>
+                                            <div class="report-item">
+                                                <strong>Location:</strong>
+                                                <input type="text" name="destination_location" value="">
+                                            </div>
+                                            <div class="report-item">
+                                                <strong>Household Size:</strong>
+                                                <input type="number" name="destination_household_size" value="">
+                                            </div>
+                                            <div class="report-item">
+                                                <strong>Bath/Bed:</strong>
+                                                <input type="text" name="destination_bath_bed" value="">
+                                            </div>
+                                            <div class="cost-section">
+                                                <div class="report-item">
+                                                    <strong>Rent:</strong>
+                                                    <input type="number" name="destination_rent" value="" step="0.01">
+                                                </div>
+                                                <div class="report-item">
+                                                    <strong>Utilities:</strong>
+                                                    <input type="number" name="destination_utilities" value="" step="0.01">
+                                                </div>
+                                                <div class="report-item">
+                                                    <strong>Groceries:</strong>
+                                                    <input type="number" name="destination_groceries" value="" step="0.01">
+                                                </div>
+                                                <div class="report-item total">
+                                                    <strong>Total:</strong>
+                                                    <span><strong>TOTAL HERE</strong></span>
+                                                </div>
+                                            </div>
+                                        </div>
                                 </div>
                             </div>
                         </th>
@@ -321,5 +331,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+
 
 

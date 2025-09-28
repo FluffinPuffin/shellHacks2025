@@ -285,6 +285,10 @@ input[type="submit"]:hover {
     align-items: center;
 }
 
+.chart-wrapper canvas {
+    width: 100% !important;
+    height: auto !important;
+}
 
 .total {
     font-size: 1.2em;
@@ -338,6 +342,7 @@ input[type="submit"]:hover {
 
 
 /* Profile */
+
 
 
 

@@ -106,26 +106,41 @@ class Database {
     public function updateSession($session_id, $updates) {
         $conn = $this->getConnection();
         
-        $set_clauses = [];
-        $values = [];
-        
-        foreach ($updates as $key => $value) {
-            if (in_array($key, ['budget_analysis', 'app_recommendations', 'user_data'])) {
-                $set_clauses[] = "$key = ?";
-                $values[] = json_encode($value);
-            } else {
-                $set_clauses[] = "$key = ?";
-                $values[] = $value;
+        try {
+            $set_clauses = [];
+            $values = [];
+            
+            foreach ($updates as $key => $value) {
+                if (in_array($key, ['budget_analysis', 'app_recommendations', 'user_data'])) {
+                    $set_clauses[] = "$key = ?";
+                    $values[] = json_encode($value);
+                } else {
+                    $set_clauses[] = "$key = ?";
+                    $values[] = $value;
+                }
             }
+            
+            $set_clauses[] = "updated_at = datetime('now')";
+            $values[] = $session_id;
+            
+            $query = "UPDATE sessions SET " . implode(', ', $set_clauses) . " WHERE session_id = ?";
+            $stmt = $conn->prepare($query);
+            
+            $result = $stmt->execute($values);
+            
+            // Check if any rows were affected
+            if ($result && $stmt->rowCount() === 0) {
+                // Session doesn't exist, create it
+                if (isset($updates['user_data'])) {
+                    return $this->createSession($session_id, $updates['user_data']);
+                }
+            }
+            
+            return $result;
+        } catch(PDOException $e) {
+            error_log("Database update error: " . $e->getMessage());
+            return false;
         }
-        
-        $set_clauses[] = "updated_at = datetime('now')";
-        $values[] = $session_id;
-        
-        $query = "UPDATE sessions SET " . implode(', ', $set_clauses) . " WHERE session_id = ?";
-        $stmt = $conn->prepare($query);
-        
-        return $stmt->execute($values);
     }
     
     private function cleanupOldSessions($conn) {
@@ -146,6 +161,31 @@ class Database {
         $stmt = $conn->prepare("SELECT COUNT(*) FROM sessions");
         $stmt->execute();
         return $stmt->fetchColumn();
+    }
+    
+    public function getCurrentSession() {
+        $conn = $this->getConnection();
+        
+        // Get the most recent session
+        $stmt = $conn->prepare("SELECT * FROM sessions ORDER BY created_at DESC LIMIT 1");
+        $stmt->execute();
+        
+        $session = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($session) {
+            $session['user_data'] = json_decode($session['user_data'], true);
+            $session['budget_analysis'] = $session['budget_analysis'] ? json_decode($session['budget_analysis'], true) : null;
+            $session['app_recommendations'] = $session['app_recommendations'] ? json_decode($session['app_recommendations'], true) : null;
+        }
+        
+        return $session;
+    }
+    
+    public function sessionExists($session_id) {
+        $conn = $this->getConnection();
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM sessions WHERE session_id = ?");
+        $stmt->execute([$session_id]);
+        return $stmt->fetchColumn() > 0;
     }
 }
 

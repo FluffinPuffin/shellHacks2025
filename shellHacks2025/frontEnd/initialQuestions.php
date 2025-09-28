@@ -8,58 +8,86 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
+$error = '';
+$success = '';
+
 // If everything inside is not empty and submit button is pressed then save to database
 if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) && !empty($_POST['house']) && !empty($_POST['bedroom']) && !empty($_POST['bathroom']) && !empty($_POST['location'])) {
-    // Generate a unique session ID
-    $session_id = 'session_' . uniqid();
+    // Validate input data
+    $name = trim($_POST['name']);
+    $age = (int)$_POST['age'];
+    $household_size = (int)$_POST['house'];
+    $bedrooms = (int)$_POST['bedroom'];
+    $bathrooms = (float)$_POST['bathroom'];
+    $location = trim($_POST['location']);
     
-    // Prepare household data
-    $household_data = [
-        'name' => $_POST['name'],
-        'age' => (int)$_POST['age'],
-        'household_size' => (int)$_POST['house'],
-        'bedrooms' => (int)$_POST['bedroom'],
-        'bathrooms' => (int)$_POST['bathroom'],
-        'location' => $_POST['location'],
-        'rent' => 0, // Will be filled in later
-        'utilities' => [
-            'water' => 0,
-            'phone' => 0,
-            'electricity' => 0,
-            'other' => 0
-        ],
-        'groceries' => 0,
-        'savings' => 0,
-        'debt' => [
-            'total_debt' => 0,
-            'monthly_payment' => 0,
-            'debt_type' => '',
-            'interest_rate' => 0
-        ],
-        'monthly_payments' => []
-    ];
-    
-    // Create session in database
-    $user_data = [
-        'household_data' => $household_data,
-        'app_requirements' => null
-    ];
-    
-    if ($db->createSession($session_id, $user_data)) {
-        $_SESSION['current_session_id'] = $session_id;
-        $_SESSION['name'] = $_POST['name'];
-        $_SESSION['age'] = $_POST['age'];
-        $_SESSION['house'] = $_POST['house'];
-        $_SESSION['bedroom'] = $_POST['bedroom'];
-        $_SESSION['bathroom'] = $_POST['bathroom'];
-        $_SESSION['location'] = $_POST['location'];
-        header("Location: home.php");
-        exit();
+    // Additional validation
+    if ($age < 18 || $age > 120) {
+        $error = "Please enter a valid age between 18 and 120.";
+    } elseif ($household_size < 1 || $household_size > 20) {
+        $error = "Please enter a valid household size between 1 and 20.";
+    } elseif ($bedrooms < 0 || $bedrooms > 20) {
+        $error = "Please enter a valid number of bedrooms.";
+    } elseif ($bathrooms < 0 || $bathrooms > 20) {
+        $error = "Please enter a valid number of bathrooms.";
     } else {
-        $error = "Failed to save session. Please try again.";
+        // Generate a unique session ID
+        $session_id = 'session_' . uniqid();
+        
+        // Prepare household data
+        $household_data = [
+            'name' => $name,
+            'age' => $age,
+            'household_size' => $household_size,
+            'bedrooms' => $bedrooms,
+            'bathrooms' => $bathrooms,
+            'location' => $location,
+            'rent' => 0, // Will be filled in later
+            'utilities' => [
+                'water' => 0,
+                'phone' => 0,
+                'electricity' => 0,
+                'other' => 0
+            ],
+            'groceries' => 0,
+            'savings' => 0,
+            'car_cost' => 0,
+            'health_insurance' => 0,
+            'debt' => [
+                'total_debt' => 0,
+                'monthly_payment' => 0,
+                'debt_type' => '',
+                'interest_rate' => 0
+            ],
+            'monthly_payments' => []
+        ];
+        
+        // Create session in database
+        $user_data = [
+            'household_data' => $household_data,
+            'app_requirements' => null,
+            'destination_data' => null,
+            'advanced_analysis' => null
+        ];
+        
+        if ($db->createSession($session_id, $user_data)) {
+            $_SESSION['current_session_id'] = $session_id;
+            $_SESSION['name'] = $name;
+            $_SESSION['age'] = $age;
+            $_SESSION['house'] = $household_size;
+            $_SESSION['bedroom'] = $bedrooms;
+            $_SESSION['bathroom'] = $bathrooms;
+            $_SESSION['location'] = $location;
+            $success = "Profile created successfully! Redirecting to budget page...";
+            
+            // Redirect after a short delay to show success message
+            header("refresh:2;url=budget.php");
+        } else {
+            $error = "Failed to save session. Please try again.";
+        }
     }
 } else if (isset($_POST['submit'])) {
-    $error = "Please fill in all fields.";
+    $error = "Please fill in all required fields.";
 }
 ?>
 <!DOCTYPE html>
@@ -74,6 +102,19 @@ if (isset($_POST['submit']) && !empty($_POST['name']) && !empty($_POST['age']) &
     <?php include 'navigation.php'?>
 
     <h1>Tell us more about yourself</h1>
+    
+    <?php if ($error): ?>
+        <div class="error-message">
+            <?php echo htmlspecialchars($error); ?>
+        </div>
+    <?php endif; ?>
+    
+    <?php if ($success): ?>
+        <div class="success-message">
+            <?php echo htmlspecialchars($success); ?>
+        </div>
+    <?php endif; ?>
+    
     <form id="initialQuestions" action="initialQuestions.php" method="post">
         <!-- Step 1 -->
         <div class="step step-1">

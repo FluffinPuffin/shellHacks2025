@@ -447,6 +447,133 @@ button:disabled {
     margin: 0 auto;
 }
 
+/* Current session status */
+.current-session-status {
+    margin-bottom: 2rem;
+}
+
+.session-card {
+    background: var(--background-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1rem;
+}
+
+.session-card p {
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.session-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.session-actions .btn {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Form enhancements */
+input.error {
+    border-color: var(--error-color);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.error-message {
+    color: var(--error-color);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Auto-save indicator */
+.autosave-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--success-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    box-shadow: var(--shadow-md);
+}
+
+/* Loading spinner */
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Form validation feedback */
+.form-group {
+    position: relative;
+}
+
+.form-group .error-message {
+    position: absolute;
+    bottom: -1.5rem;
+    left: 0;
+    font-size: 0.75rem;
+    color: var(--error-color);
+}
+
+/* Form indicators */
+.required-indicator {
+    color: var(--error-color);
+    font-weight: bold;
+}
+
+.optional-indicator {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    font-weight: normal;
+}
+
+.required {
+    color: var(--error-color);
+    font-weight: bold;
+}
+
+.form-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-style: italic;
+}
+
+/* Generated data indicator */
+.generated-field {
+    background-color: #f0f9ff;
+    border-left: 3px solid var(--accent-color);
+    padding-left: 0.5rem;
+}
+
+.generated-field::after {
+    content: " (Generated)";
+    font-size: 0.75rem;
+    color: var(--accent-color);
+    font-style: italic;
+}
+
 /* Initial Questions */
 .step-1,
 .step-2,

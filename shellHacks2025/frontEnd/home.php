@@ -10,8 +10,14 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 }
 
 // Get recent sessions from database
-$recent_sessions = $db->getRecentSessions(3);
+$recent_sessions = $db->getRecentSessions(5);
 $session_count = $db->getSessionCount();
+
+// Get current session if available
+$current_session = null;
+if (isset($_SESSION['current_session_id'])) {
+    $current_session = $db->getSession($_SESSION['current_session_id']);
+}
 ?>
 
 <!DOCTYPE html>
@@ -63,6 +69,28 @@ $session_count = $db->getSessionCount();
                 Logout
             </a>
         </div>
+
+        <!-- Current Session Status -->
+        <?php if ($current_session): ?>
+        <div class="current-session-status">
+            <h2>Current Session</h2>
+            <div class="session-card">
+                <?php if (isset($current_session['user_data']['household_data'])): ?>
+                    <?php $data = $current_session['user_data']['household_data']; ?>
+                    <p><strong>Name:</strong> <?php echo htmlspecialchars($data['name'] ?? 'N/A'); ?></p>
+                    <p><strong>Location:</strong> <?php echo htmlspecialchars($data['location'] ?? 'N/A'); ?></p>
+                    <p><strong>Household Size:</strong> <?php echo htmlspecialchars($data['household_size'] ?? 'N/A'); ?> people</p>
+                    <p><strong>Last Updated:</strong> <?php echo date('M j, Y g:i A', strtotime($current_session['updated_at'])); ?></p>
+                    <div class="session-actions">
+                        <a href="budget.php" class="btn btn-primary">Continue Budget Analysis</a>
+                        <?php if (isset($current_session['user_data']['destination_data'])): ?>
+                            <a href="location.php" class="btn btn-secondary">View Location Comparison</a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <div class="recent-budgets">
             <h2>Recent Budgets (<?php echo $session_count; ?> total)</h2>

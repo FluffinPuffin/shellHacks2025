@@ -32,10 +32,26 @@ function generateCostBreakdown($location, $household_size) {
     // Create the prompt as specified
     $prompt = "Give me a cost break down average cost of the monthly payments for {$household_size} people paying for the average phone bill (no MVNO), cost of owning a car, health insurance in {$location} based on recent sources only a single number per category in the format of the text below with no other text or notes \n 'Phone: number,Car: number,Health Insurance: number'";
     
-    // For now, we'll use realistic estimates based on location and household size
-    // In a real implementation, this would call an AI service with the prompt
+    // Try to call the AI service first
+    $ai_response = callGeminiAPI($prompt);
     
-    // Location-based multipliers
+    // Debug: Log AI response
+    error_log("AI Response: " . $ai_response);
+    
+    if ($ai_response && !strpos($ai_response, 'Error')) {
+        // Parse the AI response
+        $costs = parseAIResponse($ai_response);
+        if ($costs) {
+            error_log("AI Costs parsed successfully: " . json_encode($costs));
+            return $costs;
+        } else {
+            error_log("Failed to parse AI response: " . $ai_response);
+        }
+    } else {
+        error_log("AI call failed or returned error: " . $ai_response);
+    }
+    
+    // Fallback to realistic estimates if AI fails
     $location_multiplier = 1.0;
     if (stripos($location, 'new york') !== false || stripos($location, 'san francisco') !== false || stripos($location, 'los angeles') !== false) {
         $location_multiplier = 1.4;
@@ -46,9 +62,9 @@ function generateCostBreakdown($location, $household_size) {
     }
     
     // Generate realistic estimates
-    $phone_cost = round(80 * $household_size * $location_multiplier, 2); // Average phone bill per person
-    $car_cost = round(600 * $location_multiplier, 2); // Monthly car ownership cost
-    $health_insurance_cost = round(400 * $household_size * $location_multiplier, 2); // Health insurance per person
+    $phone_cost = round(80 * $household_size * $location_multiplier, 2);
+    $car_cost = round(600 * $location_multiplier, 2);
+    $health_insurance_cost = round(400 * $household_size * $location_multiplier, 2);
     
     return [
         'phone' => $phone_cost,
@@ -57,109 +73,51 @@ function generateCostBreakdown($location, $household_size) {
     ];
 }
 
-// Function to generate advanced budget analysis data
-function generateAdvancedBudgetData($budget_data) {
-    // Calculate current totals
-    $current_rent = $budget_data['rent'] ?? 0;
-    $current_utilities = ($budget_data['utilities']['water'] ?? 0) + 
-                        ($budget_data['utilities']['phone'] ?? 0) + 
-                        ($budget_data['utilities']['electricity'] ?? 0) + 
-                        ($budget_data['utilities']['other'] ?? 0);
-    $current_groceries = $budget_data['groceries'] ?? 0;
-    $current_debt_payment = $budget_data['debt']['monthly_payment'] ?? 0;
-    $current_savings = $budget_data['savings'] ?? 0;
-    
-    $total_expenses = $current_rent + $current_utilities + $current_groceries + $current_debt_payment;
-    
-    // Generate advanced analysis based on location and household size
-    $location = $budget_data['location'] ?? 'Unknown';
-    $household_size = $budget_data['household_size'] ?? 1;
-    $age = $budget_data['age'] ?? 25;
-    
-    // Generate cost breakdown using the specified prompt format
-    $cost_breakdown = generateCostBreakdown($location, $household_size);
-    
-    // Parse the cost breakdown response
-    $phone_cost = $cost_breakdown['phone'] ?? 0;
-    $car_cost = $cost_breakdown['car'] ?? 0;
-    $health_insurance_cost = $cost_breakdown['health_insurance'] ?? 0;
-    
-    // Location-based cost adjustments for other expenses
-    $location_multiplier = 1.0;
-    if (stripos($location, 'new york') !== false || stripos($location, 'san francisco') !== false || stripos($location, 'los angeles') !== false) {
-        $location_multiplier = 1.3;
-    } elseif (stripos($location, 'chicago') !== false || stripos($location, 'boston') !== false || stripos($location, 'seattle') !== false) {
-        $location_multiplier = 1.15;
-    } elseif (stripos($location, 'texas') !== false || stripos($location, 'florida') !== false || stripos($location, 'arizona') !== false) {
-        $location_multiplier = 0.9;
+// Function to call Gemini API via Python script
+function callGeminiAPI($prompt) {
+    try {
+        // Create a temporary file with the prompt
+        $temp_file = tempnam(sys_get_temp_dir(), 'gemini_prompt_');
+        file_put_contents($temp_file, $prompt);
+        
+        // Call the Python script
+        $python_script = __DIR__ . '/../call_gemini.py';
+        $command = "python \"$python_script\" \"$temp_file\" 2>&1";
+        
+        $output = shell_exec($command);
+        
+        // Clean up temp file
+        unlink($temp_file);
+        
+        return $output;
+    } catch (Exception $e) {
+        return "Error calling AI: " . $e->getMessage();
+    }
+}
+
+// Function to parse AI response
+function parseAIResponse($response) {
+    // Look for the specific format: Phone: number,Car: number,Health Insurance: number
+    if (preg_match('/Phone:\s*([0-9.]+).*Car:\s*([0-9.]+).*Health Insurance:\s*([0-9.]+)/i', $response, $matches)) {
+        return [
+            'phone' => (float)$matches[1],
+            'car' => (float)$matches[2],
+            'health_insurance' => (float)$matches[3]
+        ];
     }
     
-    // Generate realistic baseline recommendations if current values are zero
-    $baseline_rent = $current_rent > 0 ? $current_rent : (800 * $location_multiplier * $household_size);
-    $baseline_utilities = $current_utilities > 0 ? $current_utilities : (200 * $household_size);
-    $baseline_groceries = $current_groceries > 0 ? $current_groceries : (400 * $household_size);
-    $baseline_savings = $current_savings > 0 ? $current_savings : (300 * $household_size);
+    // Try alternative parsing if the format is slightly different
+    if (preg_match('/([0-9.]+).*?([0-9.]+).*?([0-9.]+)/', $response, $matches)) {
+        return [
+            'phone' => (float)$matches[1],
+            'car' => (float)$matches[2],
+            'health_insurance' => (float)$matches[3]
+        ];
+    }
     
-    // Calculate realistic optimized recommendations using generated costs
-    $optimized_rent = $current_rent > 0 ? round($current_rent * 0.9, 2) : round($baseline_rent * 0.9, 2);
-    $optimized_utilities = [
-        'water' => $current_utilities > 0 ? round(($budget_data['utilities']['water'] ?? 0) * 0.85, 2) : round(50 * $household_size, 2),
-        'phone' => $phone_cost, // Use generated phone cost
-        'electricity' => $current_utilities > 0 ? round(($budget_data['utilities']['electricity'] ?? 0) * 0.9, 2) : round(80 * $household_size, 2),
-        'other' => $current_utilities > 0 ? round(($budget_data['utilities']['other'] ?? 0) * 0.9, 2) : round(30 * $household_size, 2)
-    ];
-    $optimized_groceries = $current_groceries > 0 ? round($current_groceries * 0.9, 2) : round($baseline_groceries * 0.9, 2);
-    $recommended_savings = $total_expenses > 0 ? round($total_expenses * 0.2, 2) : round($baseline_savings, 2);
-    
-    // Generate optimized recommendations
-    $advanced_analysis = [
-        'current_analysis' => [
-            'total_monthly_expenses' => $total_expenses,
-            'expense_breakdown' => [
-                'housing' => $current_rent,
-                'utilities' => $current_utilities,
-                'groceries' => $current_groceries,
-                'debt_payments' => $current_debt_payment,
-                'savings' => $current_savings
-            ],
-            'expense_percentages' => [
-                'housing_percent' => $total_expenses > 0 ? round(($current_rent / $total_expenses) * 100, 1) : 0,
-                'utilities_percent' => $total_expenses > 0 ? round(($current_utilities / $total_expenses) * 100, 1) : 0,
-                'groceries_percent' => $total_expenses > 0 ? round(($current_groceries / $total_expenses) * 100, 1) : 0,
-                'debt_percent' => $total_expenses > 0 ? round(($current_debt_payment / $total_expenses) * 100, 1) : 0
-            ]
-        ],
-        'recommendations' => [
-            'optimized_rent' => $optimized_rent,
-            'optimized_utilities' => $optimized_utilities,
-            'optimized_groceries' => $optimized_groceries,
-            'recommended_savings' => $recommended_savings,
-            'car_cost' => $car_cost,
-            'health_insurance_cost' => $health_insurance_cost,
-            'emergency_fund_target' => round(($total_expenses > 0 ? $total_expenses : ($baseline_rent + $baseline_utilities + $baseline_groceries + $car_cost + $health_insurance_cost)) * 6, 2)
-        ],
-        'insights' => [
-            'housing_affordability' => $current_rent > ($total_expenses * 0.3) ? 'High' : 'Good',
-            'debt_to_income_ratio' => $total_expenses > 0 ? round(($current_debt_payment / $total_expenses) * 100, 1) : 0,
-            'savings_rate' => $total_expenses > 0 ? round(($current_savings / $total_expenses) * 100, 1) : 0,
-            'location_cost_index' => round($location_multiplier * 100, 0),
-            'household_efficiency' => $household_size > 1 ? round($total_expenses / $household_size, 2) : $total_expenses
-        ],
-        'potential_savings' => [
-            'monthly_savings_potential' => round(($total_expenses > 0 ? $total_expenses : ($baseline_rent + $baseline_utilities + $baseline_groceries)) * 0.15, 2),
-            'annual_savings_potential' => round(($total_expenses > 0 ? $total_expenses : ($baseline_rent + $baseline_utilities + $baseline_groceries)) * 0.15 * 12, 2),
-            'areas_for_improvement' => [
-                'utilities_optimization' => round(($current_utilities > 0 ? $current_utilities : $baseline_utilities) * 0.1, 2),
-                'groceries_optimization' => round(($current_groceries > 0 ? $current_groceries : $baseline_groceries) * 0.1, 2),
-                'debt_consolidation' => $current_debt_payment > 0 ? round($current_debt_payment * 0.05, 2) : 0
-            ]
-        ],
-        'generated_at' => date('Y-m-d H:i:s'),
-        'analysis_version' => '1.0'
-    ];
-    
-    return $advanced_analysis;
+    return false;
 }
+
 
 // Handle form submissions
 if (isset($_POST['Load'])) {
@@ -218,7 +176,6 @@ if (isset($_POST['Save'])) {
             'household_data' => $current_budget_data,
             'destination_data' => $current_session['user_data']['destination_data'] ?? null,
             'app_requirements' => $current_session['user_data']['app_requirements'] ?? null,
-            'advanced_analysis' => $current_session['user_data']['advanced_analysis'] ?? null
         ]
     ];
     
@@ -270,7 +227,6 @@ if (isset($_POST['NewBudget'])) {
         'user_data' => [
             'household_data' => $new_budget_data,
             'app_requirements' => null,
-            'advanced_analysis' => null
         ]
     ];
     
@@ -284,39 +240,85 @@ if (isset($_POST['NewBudget'])) {
     }
 }
 
+
+
 if (isset($_POST['Generate'])) {
+    // Debug: Show that Generate button was clicked
+    $message = "Generate button clicked! Processing...";
+    
     // Generate new budget analysis with advanced data
-    if ($current_session) {
-        // Use current form data or existing budget data
-        $current_data = [
-            'name' => $_POST['name'] ?? $budget_data['name'] ?? '',
-            'age' => (int)($_POST['age'] ?? $budget_data['age'] ?? 0),
-            'location' => $_POST['location'] ?? $budget_data['location'] ?? '',
-            'household_size' => (int)($_POST['household_size'] ?? $budget_data['household_size'] ?? 0),
-            'bedrooms' => (int)($_POST['bedrooms'] ?? $budget_data['bedrooms'] ?? 0),
-            'bathrooms' => (float)($_POST['bathrooms'] ?? $budget_data['bathrooms'] ?? 0),
-            'rent' => (float)($_POST['rent'] ?? $budget_data['rent'] ?? 0),
-            'utilities' => [
-                'water' => (float)($_POST['water'] ?? $budget_data['utilities']['water'] ?? 0),
-                'phone' => (float)($_POST['phone'] ?? $budget_data['utilities']['phone'] ?? 0),
-                'electricity' => (float)($_POST['electricity'] ?? $budget_data['utilities']['electricity'] ?? 0),
-                'other' => (float)($_POST['other_utilities'] ?? $budget_data['utilities']['other'] ?? 0)
-            ],
-            'groceries' => (float)($_POST['groceries'] ?? $budget_data['groceries'] ?? 0),
-            'savings' => (float)($_POST['savings'] ?? $budget_data['savings'] ?? 0),
-            'debt' => [
-                'total_debt' => (float)($_POST['total_debt'] ?? $budget_data['debt']['total_debt'] ?? 0),
-                'monthly_payment' => (float)($_POST['monthly_debt'] ?? $budget_data['debt']['monthly_payment'] ?? 0),
-                'debt_type' => $_POST['debt_type'] ?? $budget_data['debt']['debt_type'] ?? '',
-                'interest_rate' => (float)($_POST['interest_rate'] ?? $budget_data['debt']['interest_rate'] ?? 0)
-            ],
-            'monthly_payments' => $budget_data['monthly_payments'] ?? []
+    // If no current session, create one first
+    if (!$current_session) {
+        $new_session_id = 'session_' . uniqid();
+        $new_session_data = [
+            'user_data' => [
+                'household_data' => null,
+                'app_requirements' => null,
+                'destination_data' => null,
+            ]
         ];
         
-        // Generate advanced budget analysis data
-        $advanced_data = generateAdvancedBudgetData($current_data);
+        if ($db->createSession($new_session_id, $new_session_data)) {
+            $_SESSION['current_session_id'] = $new_session_id;
+            $current_session = $db->getSession($new_session_id);
+        }
+    }
+    
+    if ($current_session) {
+        // Validate required profile fields
+        $required_profile_fields = ['name', 'age', 'location', 'household_size', 'bedrooms', 'bathrooms'];
+        $missing_fields = [];
         
-        // Update budget_data with optimized recommendations for the form fields
+        foreach ($required_profile_fields as $field) {
+            $value = $_POST[$field] ?? '';
+            if (empty($value)) {
+                $missing_fields[] = str_replace('_', ' ', $field);
+            }
+        }
+        
+        // Debug: Show what values we received
+        $debug_values = [];
+        foreach ($required_profile_fields as $field) {
+            $debug_values[$field] = $_POST[$field] ?? 'NOT_SET';
+        }
+        $message .= " | Debug values: " . print_r($debug_values, true);
+        
+        if (!empty($missing_fields)) {
+            $message = "Please fill in all required profile fields: " . implode(', ', $missing_fields) . " | Debug: Missing fields: " . print_r($missing_fields, true);
+        } else {
+            $message = "All required fields filled! Proceeding with generation...";
+            // Use current form data or existing budget data, with smart defaults for missing financial data
+            $current_data = [
+                'name' => trim($_POST['name']),
+                'age' => (int)$_POST['age'],
+                'location' => trim($_POST['location']),
+                'household_size' => (int)$_POST['household_size'],
+                'bedrooms' => (int)$_POST['bedrooms'],
+                'bathrooms' => (float)$_POST['bathrooms'],
+                'rent' => (float)($_POST['rent'] ?? $budget_data['rent'] ?? 0),
+                'utilities' => [
+                    'water' => (float)($_POST['water'] ?? $budget_data['utilities']['water'] ?? 0),
+                    'phone' => (float)($_POST['phone'] ?? $budget_data['utilities']['phone'] ?? 0),
+                    'electricity' => (float)($_POST['electricity'] ?? $budget_data['utilities']['electricity'] ?? 0),
+                    'other' => (float)($_POST['other_utilities'] ?? $budget_data['utilities']['other'] ?? 0)
+                ],
+                'groceries' => (float)($_POST['groceries'] ?? $budget_data['groceries'] ?? 0),
+                'savings' => (float)($_POST['savings'] ?? $budget_data['savings'] ?? 0),
+                'car_cost' => (float)($_POST['car_cost'] ?? $budget_data['car_cost'] ?? 0),
+                'health_insurance' => (float)($_POST['health_insurance'] ?? $budget_data['health_insurance'] ?? 0),
+                'debt' => [
+                    'total_debt' => (float)($_POST['total_debt'] ?? $budget_data['debt']['total_debt'] ?? 0),
+                    'monthly_payment' => (float)($_POST['monthly_debt'] ?? $budget_data['debt']['monthly_payment'] ?? 0),
+                    'debt_type' => $_POST['debt_type'] ?? $budget_data['debt']['debt_type'] ?? '',
+                    'interest_rate' => (float)($_POST['interest_rate'] ?? $budget_data['debt']['interest_rate'] ?? 0)
+                ],
+                'monthly_payments' => $budget_data['monthly_payments'] ?? []
+            ];
+        
+        // Generate cost breakdown using AI
+        $cost_breakdown = generateCostBreakdown($current_data['location'], $current_data['household_size']);
+        
+        // Update budget_data with generated values for missing fields
         $optimized_budget_data = [
             'name' => $current_data['name'],
             'age' => $current_data['age'],
@@ -324,36 +326,76 @@ if (isset($_POST['Generate'])) {
             'household_size' => $current_data['household_size'],
             'bedrooms' => $current_data['bedrooms'],
             'bathrooms' => $current_data['bathrooms'],
-            'rent' => $advanced_data['recommendations']['optimized_rent'],
+            'rent' => $current_data['rent'] > 0 ? $current_data['rent'] : (800 * $current_data['household_size']),
             'utilities' => [
-                'water' => $advanced_data['recommendations']['optimized_utilities']['water'],
-                'phone' => $advanced_data['recommendations']['optimized_utilities']['phone'],
-                'electricity' => $advanced_data['recommendations']['optimized_utilities']['electricity'],
-                'other' => $advanced_data['recommendations']['optimized_utilities']['other']
+                'water' => $current_data['utilities']['water'] > 0 ? $current_data['utilities']['water'] : (50 * $current_data['household_size']),
+                'phone' => $current_data['utilities']['phone'] > 0 ? $current_data['utilities']['phone'] : ($cost_breakdown['phone'] ?? 80),
+                'electricity' => $current_data['utilities']['electricity'] > 0 ? $current_data['utilities']['electricity'] : (80 * $current_data['household_size']),
+                'other' => $current_data['utilities']['other'] > 0 ? $current_data['utilities']['other'] : (30 * $current_data['household_size'])
             ],
-            'groceries' => $advanced_data['recommendations']['optimized_groceries'],
-            'savings' => $advanced_data['recommendations']['recommended_savings'],
-            'car_cost' => $advanced_data['recommendations']['car_cost'],
-            'health_insurance' => $advanced_data['recommendations']['health_insurance_cost'],
+            'groceries' => $current_data['groceries'] > 0 ? $current_data['groceries'] : (400 * $current_data['household_size']),
+            'savings' => $current_data['savings'] > 0 ? $current_data['savings'] : (300 * $current_data['household_size']),
+            'car_cost' => $current_data['car_cost'] > 0 ? $current_data['car_cost'] : ($cost_breakdown['car'] ?? 500),
+            'health_insurance' => $current_data['health_insurance'] > 0 ? $current_data['health_insurance'] : ($cost_breakdown['health_insurance'] ?? 300),
             'debt' => $current_data['debt'], // Keep current debt info
             'monthly_payments' => $current_data['monthly_payments']
         ];
         
-        // Update the session with both optimized budget data and advanced analysis
+        // Update the session with optimized budget data
         $update_data = [
             'user_data' => [
                 'household_data' => $optimized_budget_data,
                 'app_requirements' => $current_session['user_data']['app_requirements'] ?? null,
-                'advanced_analysis' => $advanced_data
             ]
         ];
         
         if ($db->updateSession($_SESSION['current_session_id'], $update_data)) {
             $budget_data = $optimized_budget_data; // Update the current budget_data for display
-            $message = "Advanced budget analysis generated and applied to form fields!";
+            
+            // Count how many fields were generated vs user input
+            $generated_fields = [];
+            $user_input_fields = [];
+            
+            if ($current_data['rent'] == 0) $generated_fields[] = 'rent';
+            else $user_input_fields[] = 'rent';
+            
+            if ($current_data['utilities']['water'] == 0) $generated_fields[] = 'utilities';
+            else $user_input_fields[] = 'utilities';
+            
+            if ($current_data['groceries'] == 0) $generated_fields[] = 'groceries';
+            else $user_input_fields[] = 'groceries';
+            
+            if ($current_data['car_cost'] == 0) $generated_fields[] = 'car costs';
+            else $user_input_fields[] = 'car costs';
+            
+            if ($current_data['health_insurance'] == 0) $generated_fields[] = 'health insurance';
+            else $user_input_fields[] = 'health insurance';
+            
+            $message = "Budget analysis generated successfully! ";
+            if (!empty($generated_fields)) {
+                $message .= "Generated estimates for: " . implode(', ', $generated_fields) . ". ";
+            }
+            if (!empty($user_input_fields)) {
+                $message .= "Used your input for: " . implode(', ', $user_input_fields) . ". ";
+            }
+            
+            // Check if AI was used
+            $ai_used = false;
+            if (isset($advanced_data['recommendations']['car_cost']) && $advanced_data['recommendations']['car_cost'] > 0) {
+                $ai_used = true;
+            }
+            
+            if ($ai_used) {
+                $message .= " AI-powered cost estimates were generated based on your location and household size. ";
+            } else {
+                $message .= " Cost estimates were generated using location-based calculations. ";
+            }
+            
+            $message .= "You can now review and adjust the values as needed.";
         } else {
             $message = "Failed to save advanced analysis.";
         }
+        } // Close the else block for missing fields check
     } else {
         $message = "Please create a budget session first.";
     }
@@ -419,6 +461,7 @@ if (isset($_POST['Update'])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css">
+    <script src="./js/app.js"></script>
 </head>
 
 <body>
@@ -499,9 +542,9 @@ if (isset($_POST['Update'])) {
             </form>
         </div>
 
-        <form name="budgetForm" id="budgetForm" method="POST" action="">
+        <form name="budgetForm" id="budgetForm" method="POST" action="budget.php">
             <div class="budget-actions">
-                <button type="submit" name="Generate" class="btn btn-primary">
+                <button type="submit" name="Generate" class="btn btn-primary" onclick="console.log('Generate button clicked');">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
                     </svg>
@@ -512,35 +555,37 @@ if (isset($_POST['Update'])) {
             <div class="compare-section">
                 <div class="budget-forms-row">
                     <div class="location-form">
-                        <h3 class="text-center">Personal Information</h3>
+                        <h3 class="text-center">Personal Information <span class="required-indicator">*</span></h3>
+                        <p class="form-description">These fields are required to generate your budget analysis.</p>
                         <div class="report-item">
-                            <label for="name">Name</label>
+                            <label for="name">Name <span class="required">*</span></label>
                             <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($budget_data['name'] ?? ''); ?>" placeholder="Enter your full name">
                         </div>
                         <div class="report-item">
-                            <label for="age">Age</label>
-                            <input type="number" id="age" name="age" value="<?php echo htmlspecialchars($budget_data['age'] ?? ''); ?>" min="18" placeholder="Enter your age">
+                            <label for="age">Age <span class="required">*</span></label>
+                            <input type="number" id="age" name="age" value="<?php echo htmlspecialchars($budget_data['age'] ?? ''); ?>" min="18" max="120" placeholder="Enter your age">
                         </div>
                         <div class="report-item">
-                            <label for="location">Location</label>
+                            <label for="location">Location <span class="required">*</span></label>
                             <input type="text" id="location" name="location" value="<?php echo htmlspecialchars($budget_data['location'] ?? ''); ?>" placeholder="City, State">
                         </div>
                         <div class="report-item">
-                            <label for="household_size">Household Size</label>
-                            <input type="number" id="household_size" name="household_size" value="<?php echo htmlspecialchars($budget_data['household_size'] ?? ''); ?>" min="1" placeholder="Number of people">
+                            <label for="household_size">Household Size <span class="required">*</span></label>
+                            <input type="number" id="household_size" name="household_size" value="<?php echo htmlspecialchars($budget_data['household_size'] ?? ''); ?>" min="1" max="20" placeholder="Number of people">
                         </div>
                         <div class="report-item">
-                            <label for="bedrooms">Bedrooms</label>
-                            <input type="number" id="bedrooms" name="bedrooms" value="<?php echo htmlspecialchars($budget_data['bedrooms'] ?? ''); ?>" min="0" placeholder="Number of bedrooms">
+                            <label for="bedrooms">Bedrooms <span class="required">*</span></label>
+                            <input type="number" id="bedrooms" name="bedrooms" value="<?php echo htmlspecialchars($budget_data['bedrooms'] ?? ''); ?>" min="0" max="20" placeholder="Number of bedrooms">
                         </div>
                         <div class="report-item">
-                            <label for="bathrooms">Bathrooms</label>
-                            <input type="number" id="bathrooms" name="bathrooms" value="<?php echo htmlspecialchars($budget_data['bathrooms'] ?? ''); ?>" min="0" step="0.5" placeholder="Number of bathrooms">
+                            <label for="bathrooms">Bathrooms <span class="required">*</span></label>
+                            <input type="number" id="bathrooms" name="bathrooms" value="<?php echo htmlspecialchars($budget_data['bathrooms'] ?? ''); ?>" min="0" max="20" step="0.5" placeholder="Number of bathrooms">
                         </div>
                     </div>
                     
                     <div class="location-form">
-                        <h3 class="text-center">Financial Information</h3>
+                        <h3 class="text-center">Financial Information <span class="optional-indicator">(Optional)</span></h3>
+                        <p class="form-description">Enter your current expenses or leave blank to generate estimates based on your location and household size.</p>
                         <div class="cost-section">
                             <div class="report-item">
                                 <label for="rent">Monthly Rent</label>
@@ -758,102 +803,6 @@ if (isset($_POST['Update'])) {
         </div>
         <?php endif; ?>
 
-        <!-- Advanced Analysis Section -->
-        <?php if (isset($current_session['user_data']['advanced_analysis'])): ?>
-            <?php $analysis = $current_session['user_data']['advanced_analysis']; ?>
-            <div class="advanced-analysis">
-                <h2>Advanced Budget Analysis</h2>
-                <div class="analysis-grid">
-                    <div class="analysis-card">
-                        <h3>Current Analysis</h3>
-                        <div class="analysis-item">
-                            <strong>Total Monthly Expenses:</strong> $<?php echo number_format($analysis['current_analysis']['total_monthly_expenses'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Housing Percentage:</strong> <?php echo $analysis['current_analysis']['expense_percentages']['housing_percent']; ?>%
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Utilities Percentage:</strong> <?php echo $analysis['current_analysis']['expense_percentages']['utilities_percent']; ?>%
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Groceries Percentage:</strong> <?php echo $analysis['current_analysis']['expense_percentages']['groceries_percent']; ?>%
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Debt Percentage:</strong> <?php echo $analysis['current_analysis']['expense_percentages']['debt_percent']; ?>%
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-card">
-                        <h3>Optimized Recommendations</h3>
-                        <div class="analysis-item">
-                            <strong>Optimized Rent:</strong> $<?php echo number_format($analysis['recommendations']['optimized_rent'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Optimized Water:</strong> $<?php echo number_format($analysis['recommendations']['optimized_utilities']['water'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Optimized Phone:</strong> $<?php echo number_format($analysis['recommendations']['optimized_utilities']['phone'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Optimized Electricity:</strong> $<?php echo number_format($analysis['recommendations']['optimized_utilities']['electricity'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Optimized Groceries:</strong> $<?php echo number_format($analysis['recommendations']['optimized_groceries'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Recommended Savings:</strong> $<?php echo number_format($analysis['recommendations']['recommended_savings'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Car Ownership Cost:</strong> $<?php echo number_format($analysis['recommendations']['car_cost'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Health Insurance:</strong> $<?php echo number_format($analysis['recommendations']['health_insurance_cost'], 2); ?>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-card">
-                        <h3>Financial Insights</h3>
-                        <div class="analysis-item">
-                            <strong>Housing Affordability:</strong> <?php echo $analysis['insights']['housing_affordability']; ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Debt-to-Expense Ratio:</strong> <?php echo $analysis['insights']['debt_to_income_ratio']; ?>%
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Current Savings Rate:</strong> <?php echo $analysis['insights']['savings_rate']; ?>%
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Location Cost Index:</strong> <?php echo $analysis['insights']['location_cost_index']; ?>%
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Cost per Person:</strong> $<?php echo number_format($analysis['insights']['household_efficiency'], 2); ?>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-card">
-                        <h3>Savings Potential</h3>
-                        <div class="analysis-item">
-                            <strong>Monthly Savings Potential:</strong> $<?php echo number_format($analysis['potential_savings']['monthly_savings_potential'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Annual Savings Potential:</strong> $<?php echo number_format($analysis['potential_savings']['annual_savings_potential'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Utilities Optimization:</strong> $<?php echo number_format($analysis['potential_savings']['areas_for_improvement']['utilities_optimization'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Groceries Optimization:</strong> $<?php echo number_format($analysis['potential_savings']['areas_for_improvement']['groceries_optimization'], 2); ?>
-                        </div>
-                        <div class="analysis-item">
-                            <strong>Emergency Fund Target:</strong> $<?php echo number_format($analysis['recommendations']['emergency_fund_target'], 2); ?>
-                        </div>
-                    </div>
-                </div>
-                <div class="analysis-footer">
-                    <p><em>Analysis generated on: <?php echo $analysis['generated_at']; ?></em></p>
-                </div>
-            </div>
-        <?php endif; ?>
     </div>
 </body>
 </html>

@@ -1,291 +1,164 @@
-/* ========== Global / Reset ========== */
+/* Budget */
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* Create Account */
 
-body, html {
-  width: 100%;
-  height: 100%;
-  background-color: #f0f2f5;
-  font-family: Arial, sans-serif;
-  color: #333;
-}
-
-/* Utility classes */
-
-.hidden {
-  display: none !important;
-}
-
-.flex {
-  display: flex;
-}
-
-.center {
-  justify-content: center;
-  align-items: center;
-}
-
-/* ========== Navigation / Header / Footer ========== */
-
-.nav-links {
-  list-style: none;
-  display: flex;
-  margin: 0;
-  padding: 0;
-  justify-content: center;
-  background-color: #cfe2f3;
-  width: 100%;
-  height: 50px;
-}
-
-.nav-links li {
-  flex: 1;
-}
-
-.nav-links a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  text-decoration: none;
-  color: #1a3f5c;
-  transition: background-color 0.3s, color 0.3s;
-  font-weight: bold;
-}
-
-.nav-links a:hover {
-  background-color: #9fc5e8;
-  color: #fff;
-}
-
-/* ========== Home / Landing Page ========== */
-
+/* Home */
+/* Homepage general style (full width, full height) */
 .home-container {
-  padding: 2em;
-  background-color: #f0f2f5;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+    padding: 2em;
+    background-color: #f0f2f5;
+    /* light grey background */
+    font-family: Arial, sans-serif;
 }
 
+/* Welcome message */
 .home-container h1 {
-  text-align: center;
-  color: #1a3f5c;
-  margin-bottom: 1em;
+    text-align: center;
+    color: #1a3f5c;
+    /* dark blue text */
+    margin-bottom: 1em;
 }
 
-.navigation {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2em;
-}
-
+/* Buttons (Start/View/Location) */
 .navigation form input[type="submit"] {
-  background-color: #cfe2f3;
-  border: 1px solid #a1c4e9;
-  padding: 0.5em 1em;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
-  font-size: 1em;
-  border-radius: 4px;
-  margin: 0.5em;
-  color: #1a3f5c;
+    background-color: #cfe2f3;
+    /* soft blue */
+    border: 1px solid #a1c4e9;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 1em;
+    border-radius: 4px;
+    margin: 0.5em;
+    color: #1a3f5c;
+    /* dark blue text */
 }
 
 .navigation form input[type="submit"]:hover {
-  background-color: #9fc5e8;
-  color: #fff;
+    background-color: #9fc5e8;
+    /* darker blue on hover */
+    color: #fff;
 }
 
-/* ========== Recent Budgets / Sessions Section ========== */
-
+/* Recent budgets section */
 .recent-budgets {
-  margin-top: 2em;
-  padding: 1em;
-  background-color: #e6edf5;
-  border-radius: 6px;
+    margin-top: 2em;
+    padding: 1em;
+    background-color: #e6edf5;
+    /* very light blue */
+    border-radius: 6px;
 }
 
 .budget-session {
-  padding: 0.8em;
-  border-bottom: 1px solid #c1d3e0;
+    padding: 0.8em;
+    border-bottom: 1px solid #c1d3e0;
 }
 
 .budget-session:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .budget-session h3 {
-  margin: 0 0 0.3em 0;
-  color: #1a3f5c;
+    margin: 0 0 0.3em 0;
+    color: #1a3f5c;
 }
 
 .budget-session p {
-  margin: 0.2em 0;
-  color: #333;
+    margin: 0.2em 0;
+    color: #333;
 }
 
-/* ========== Steps / Questions / Multi-step Forms ========== */
+/* Navigation */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+    background-color: #cfe2f3;
+    /* soft blue nav bar */
+    width: 100%;
+    height: 50px;
+}
 
-/* Hide all steps by default; JS will toggle .active or override */
+.nav-links li {
+    flex: 1;
+}
+
+.nav-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-decoration: none;
+    color: #1a3f5c;
+    transition: background-color 0.3s, color 0.3s;
+    font-weight: bold;
+}
+
+.nav-links a:hover {
+    background-color: #9fc5e8;
+    /* hover darker blue */
+    color: #fff;
+}
+
+/* Profile section */
+
+/* Initial Questions Style */
+
+/* Hide all steps by default (JS will show the active one) */
 .step-1,
 .step-2,
 .step-3 {
-  display: none;
+    display: none;
 }
 
-/* When a step is active (or via JS you add a class “active”) */
-.step-1.active,
-.step-2.active,
-.step-3.active {
-  display: block;
+/* Location */
+
+/* Login */
+
+/* Logout */
+
+/* Navgation */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 0;
+    /* remove gap from ul; we’ll use margin on li if needed */
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+    background-color: #d9dadb;
+    width: 100%;
+    height: 50px;
 }
 
-/* You can style navigational “Next / Back” buttons inside steps: */
-.step-navigation {
-  margin-top: 1em;
-  text-align: center;
+.nav-links li {
+    flex: 1;
+    /* Make each li take equal space */
 }
 
-.step-navigation button {
-  background-color: #cfe2f3;
-  border: 1px solid #a1c4e9;
-  padding: 0.5em 1em;
-  border-radius: 4px;
-  margin: 0 0.5em;
-  color: #1a3f5c;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+.nav-links a {
+    display: flex;
+    /* Make the link a flex container */
+    align-items: center;
+    /* Vertically center text */
+    justify-content: center;
+    /* Horizontally center text */
+    height: 100%;
+    /* Fill the li height */
+    text-decoration: none;
+    color: black;
+    /* link color */
+    transition: background-color 0.3s;
 }
 
-.step-navigation button:hover {
-  background-color: #9fc5e8;
-  color: #fff;
+.nav-links a:hover {
+    background-color: #b3b3b3;
+    /* Full box hover effect */
+    text-decoration: underline;
 }
 
-/* ========== Create Account / Registration ========== */
 
-.create-account-container {
-  max-width: 400px;
-  margin: 2em auto;
-  background-color: #fff;
-  padding: 1.5em;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.create-account-container h2 {
-  text-align: center;
-  color: #1a3f5c;
-  margin-bottom: 1em;
-}
-
-.create-account-container label {
-  display: block;
-  margin-bottom: 0.3em;
-  font-weight: bold;
-}
-
-.create-account-container input[type="text"],
-.create-account-container input[type="password"],
-.create-account-container input[type="email"] {
-  width: 100%;
-  padding: 0.5em;
-  margin-bottom: 1em;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-/* Location Comparison Styles */
-.location-comparison {
-  margin: 2em 0;
-  padding: 1em;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-}
-
-.location-comparison h2 {
-  text-align: center;
-  color: #1a3f5c;
-  margin-bottom: 1.5em;
-}
-
-.comparison-container {
-  display: flex;
-  gap: 2em;
-  margin-bottom: 2em;
-}
-
-.comparison-card {
-  flex: 1;
-  background-color: white;
-  padding: 1.5em;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border: 1px solid #e9ecef;
-}
-
-.comparison-card h3 {
-  color: #1a3f5c;
-  margin-bottom: 1em;
-  text-align: center;
-  border-bottom: 2px solid #007bff;
-  padding-bottom: 0.5em;
-}
-
-.comparison-item {
-  margin-bottom: 0.8em;
-  padding: 0.3em 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.comparison-item.total {
-  border-top: 2px solid #007bff;
-  border-bottom: none;
-  margin-top: 1em;
-  padding-top: 0.8em;
-  font-size: 1.1em;
-  background-color: #f8f9fa;
-  padding: 0.8em;
-  border-radius: 4px;
-}
-
-.comparison-summary {
-  background-color: white;
-  padding: 1.5em;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border: 1px solid #e9ecef;
-}
-
-.comparison-summary h3 {
-  color: #1a3f5c;
-  margin-bottom: 1em;
-  text-align: center;
-}
-
-.summary-item {
-  margin-bottom: 0.8em;
-  padding: 0.5em;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  border-left: 4px solid #007bff;
-}
-
-.summary-item strong {
-  color: #1a3f5c;
-}
-
-/* Responsive design for comparison */
-@media (max-width: 768px) {
-  .comparison-container {
-    flex-direction: column;
-    gap: 1em;
-  }
-}
+/* Profile */
